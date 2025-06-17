@@ -1,4 +1,4 @@
-checkpoint_config = dict(interval=10)
+checkpoint_config = dict(interval=-1)
 
 log_config = dict(
     interval=50,
@@ -11,7 +11,7 @@ log_level = 'INFO'
 load_from = None
 resume_from = None
 dist_params = dict(backend='nccl')
-workflow = [('train', 1)]
+workflow = [('train', 1), ('val', 1)]
 
 # disable opencv multithreading to avoid system being overloaded
 opencv_num_threads = 0

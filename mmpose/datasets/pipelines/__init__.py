@@ -2,6 +2,8 @@
 from .bottom_up_transform import *  # noqa
 from .hand_transform import *  # noqa
 from .loading import LoadImageFromFile  # noqa
+from .loading_depth import LoadDepthImageFromFile  # noqa
+from .loading_one_channel import LoadOneChannelImageFromFile
 from .mesh_transform import *  # noqa
 from .pose3d_transform import *  # noqa
 from .shared_transform import *  # noqa

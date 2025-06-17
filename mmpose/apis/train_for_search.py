@@ -1,4 +1,5 @@
 # Copyright (c) OpenMMLab. All rights reserved.
+import copy
 import warnings
 
 import mmcv
@@ -6,7 +7,7 @@ import numpy as np
 import torch
 import torch.distributed as dist
 from mmcv.parallel import MMDataParallel, MMDistributedDataParallel
-from mmcv.runner import (DistSamplerSeedHook, EpochBasedRunner, OptimizerHook,
+from mmcv.runner import (DistSamplerSeedHook, EpochBasedRunnerForSearch, OptimizerHook,
                          get_dist_info)
 from mmcv.utils import digit_version
 
@@ -14,7 +15,6 @@ from mmpose.core import DistEvalHook, EvalHook, build_optimizers
 from mmpose.core.distributed_wrapper import DistributedDataParallelWrapper
 from mmpose.datasets import build_dataloader, build_dataset
 from mmpose.utils import get_root_logger
-# # from torch_lr_finder import LRFinder
 
 try:
     from mmcv.runner import Fp16OptimizerHook
@@ -25,7 +25,7 @@ except ImportError:
     from mmpose.core import Fp16OptimizerHook
 
 
-def init_random_seed(seed=None, device='cuda'):
+def init_random_seed_for_search(seed=None, device='cuda'):
     """Initialize random seed.
 
     If the seed is not set, the seed will be automatically randomized,
@@ -58,13 +58,14 @@ def init_random_seed(seed=None, device='cuda'):
     return random_num.item()
 
 
-def train_model(model,
+def train_model_for_search(model,
                 dataset,
                 cfg,
                 distributed=False,
                 validate=False,
                 timestamp=None,
-                meta=None):
+                meta=None,
+                exp_epochs=1):
     """Train model entry function.
 
     Args:
@@ -145,12 +146,13 @@ def train_model(model,
     # build runner
     optimizer = build_optimizers(model, cfg.optimizer)
 
-    runner = EpochBasedRunner(
+    runner = EpochBasedRunnerForSearch(
         model,
         optimizer=optimizer,
         work_dir=cfg.work_dir,
         logger=logger,
-        meta=meta)
+        meta=meta,
+        exp_epochs=exp_epochs)
     # an ugly workaround to make .log and .log.json filenames the same
     runner.timestamp = timestamp
 

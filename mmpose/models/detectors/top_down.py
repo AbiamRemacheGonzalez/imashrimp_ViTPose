@@ -87,14 +87,15 @@ class TopDown(BasePose):
         if self.with_keypoint:
             self.keypoint_head.init_weights()
 
-    @auto_fp16(apply_to=('img', ))
+    # Modificado para que devuelva heatmaps
+    @auto_fp16(apply_to=('img',))
     def forward(self,
                 img,
                 target=None,
                 target_weight=None,
                 img_metas=None,
                 return_loss=True,
-                return_heatmap=False,
+                return_heatmap=True,
                 **kwargs):
         """Calls either forward_train or forward_test depending on whether
         return_loss=True. Note this setting will change the expected inputs.

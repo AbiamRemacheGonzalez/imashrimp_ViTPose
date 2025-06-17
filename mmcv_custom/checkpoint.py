@@ -83,8 +83,22 @@ def load_state_dict(module, state_dict, strict=False, logger=None):
         for name, child in module._modules.items():
             if child is not None:
                 load(child, prefix + name + '.')
+    prefix = ''
+    for state in state_dict.keys():
+        if "backbone." in state:
+            prefix = "backbone."
+            break
+    if module.patch_embed.proj.in_channels == 4 and state_dict['backbone.patch_embed.proj.weight'].shape[1] == 3:
+        old_w = state_dict['backbone.patch_embed.proj.weight']
+        d_w = old_w[:, 0:1, :, :]
+        new_w = torch.cat((old_w, d_w), dim=1)
+        state_dict['backbone.patch_embed.proj.weight'] = new_w
+    if module.patch_embed.proj.in_channels == 1:
+        old_w = state_dict['backbone.patch_embed.proj.weight']
+        d_w = old_w[:, 0:1, :, :]
+        state_dict['backbone.patch_embed.proj.weight'] = d_w
 
-    load(module)
+    load(module, prefix)
     load = None  # break load->load reference cycle
 
     # ignore "num_batches_tracked" of BN layers

@@ -114,6 +114,7 @@ def _box2cs(cfg, box):
 
 def _inference_single_pose_model(model,
                                  img_or_path,
+                                 depth_or_path,
                                  bboxes,
                                  dataset='TopDownCocoDataset',
                                  dataset_info=None,
@@ -274,7 +275,8 @@ def _inference_single_pose_model(model,
             data['img'] = img_or_path
         else:
             data['image_file'] = img_or_path
-
+        if depth_or_path and os.path.exists(depth_or_path):
+            data['depth_file'] = depth_or_path
         data = test_pipeline(data)
         batch_data.append(data)
 
@@ -294,6 +296,7 @@ def _inference_single_pose_model(model,
 
 def inference_top_down_pose_model(model,
                                   img_or_path,
+                                  depth_or_path,
                                   person_results=None,
                                   bbox_thr=None,
                                   format='xywh',
@@ -400,6 +403,7 @@ def inference_top_down_pose_model(model,
         poses, heatmap = _inference_single_pose_model(
             model,
             img_or_path,
+            depth_or_path,
             bboxes_xywh,
             dataset=dataset,
             dataset_info=dataset_info,

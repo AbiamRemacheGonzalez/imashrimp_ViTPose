@@ -203,6 +203,7 @@ class TopDownAffine:
         image_size = results['ann_info']['image_size']
 
         img = results['img']
+        channels = img.shape[2]
         joints_3d = results['joints_3d']
         joints_3d_visible = results['joints_3d_visible']
         c = results['center']

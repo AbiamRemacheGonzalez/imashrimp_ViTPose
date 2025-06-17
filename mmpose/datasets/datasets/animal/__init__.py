@@ -7,9 +7,11 @@ from .animal_locust_dataset import AnimalLocustDataset
 from .animal_macaque_dataset import AnimalMacaqueDataset
 from .animal_pose_dataset import AnimalPoseDataset
 from .animal_zebra_dataset import AnimalZebraDataset
+from .animal_camaron_dataset import AnimalCamaronDataset
+from .animal_camaron_dataset_rgbd import AnimalCamaronDatasetDeep
 
 __all__ = [
     'AnimalHorse10Dataset', 'AnimalMacaqueDataset', 'AnimalFlyDataset',
     'AnimalLocustDataset', 'AnimalZebraDataset', 'AnimalATRWDataset',
-    'AnimalPoseDataset', 'AnimalAP10KDataset'
+    'AnimalPoseDataset', 'AnimalAP10KDataset', 'AnimalCamaronDataset', 'AnimalCamaronDatasetDeep'
 ]

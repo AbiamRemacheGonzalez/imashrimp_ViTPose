@@ -9,9 +9,10 @@ from .kpt_3d_mview_rgb_img_direct_dataset import Kpt3dMviewRgbImgDirectDataset
 from .kpt_3d_sview_kpt_2d_dataset import Kpt3dSviewKpt2dDataset
 from .kpt_3d_sview_rgb_img_top_down_dataset import \
     Kpt3dSviewRgbImgTopDownDataset
+from .kpt_2d_deep_sview_rgbd_img_top_down_dataset import Kpt2dDeepSviewRgbImgTopDownDataset
 
 __all__ = [
     'Kpt3dMviewRgbImgDirectDataset', 'Kpt2dSviewRgbImgTopDownDataset',
     'Kpt3dSviewRgbImgTopDownDataset', 'Kpt2dSviewRgbImgBottomUpDataset',
-    'Kpt3dSviewKpt2dDataset', 'Kpt2dSviewRgbVidTopDownDataset'
+    'Kpt3dSviewKpt2dDataset', 'Kpt2dSviewRgbVidTopDownDataset', 'Kpt2dDeepSviewRgbImgTopDownDataset'
 ]

@@ -15,7 +15,7 @@ from mmpose.datasets import DatasetInfo
 from mmpose.datasets.pipelines import Compose
 
 
-class Kpt2dSviewRgbImgTopDownDataset(Dataset, metaclass=ABCMeta):
+class Kpt2dDeepSviewRgbImgTopDownDataset(Dataset, metaclass=ABCMeta):
     """Base class for keypoint 2D top-down pose estimation with single-view RGB
     image as the input.
 
@@ -39,6 +39,7 @@ class Kpt2dSviewRgbImgTopDownDataset(Dataset, metaclass=ABCMeta):
     def __init__(self,
                  ann_file,
                  img_prefix,
+                 img_prefix_depth,
                  data_cfg,
                  pipeline,
                  dataset_info=None,
@@ -50,6 +51,7 @@ class Kpt2dSviewRgbImgTopDownDataset(Dataset, metaclass=ABCMeta):
 
         self.ann_file = ann_file
         self.img_prefix = img_prefix
+        self.img_prefix_depth = img_prefix_depth
         self.pipeline = pipeline
         self.test_mode = test_mode
 
@@ -102,7 +104,7 @@ class Kpt2dSviewRgbImgTopDownDataset(Dataset, metaclass=ABCMeta):
                     for cls in self.classes[1:])
             self.img_ids = self.coco.getImgIds()
             self.num_images = len(self.img_ids)
-            self.id2name, self.name2id = self._get_mapping_id_name(
+            self.id2name, self.name2id, self.id2depthname, self.depthname2id = self._get_mapping_id_name(
                 self.coco.imgs)
 
         self.db = []
@@ -123,12 +125,18 @@ class Kpt2dSviewRgbImgTopDownDataset(Dataset, metaclass=ABCMeta):
         """
         id2name = {}
         name2id = {}
+        id2depthname = {}
+        depthname2id = {}
         for image_id, image in imgs.items():
             file_name = image['file_name']
             id2name[image_id] = file_name
             name2id[file_name] = image_id
+            depthname = file_name.replace('.png', '.npy')
+            depthname = depthname.replace('C', 'D', 1)
+            depthname2id[depthname] = image_id
+            id2depthname[image_id] = depthname
 
-        return id2name, name2id
+        return id2name, name2id, id2depthname, depthname2id
 
     def _xywh2cs(self, x, y, w, h, padding=1.25):
         """This encodes bbox(x,y,w,h) into (center, scale)
@@ -222,9 +230,13 @@ class Kpt2dSviewRgbImgTopDownDataset(Dataset, metaclass=ABCMeta):
         threshold_bbox = []
         threshold_head_box = []
         threshold_bbox_for_pcke = []
+        # num_kp = len(preds[0]['keypoints'])
+        # real_measure_factors = np.zeros((num_kp, len(preds)))
 
         for pred, item in zip(preds, self.db):
             outputs.append(np.array(pred['keypoints'])[:, :-1])
+            # rmfl = np.array([pred['real_measure_factor']] * len(pred['keypoints']))
+            # real_measure_factors[:, pred['image_id']-1]=rmfl
             gts.append(np.array(item['joints_3d'])[:, :-1])
             masks.append((np.array(item['joints_3d_visible'])[:, 0]) > 0)
             if 'PCK' in metrics:
@@ -252,20 +264,30 @@ class Kpt2dSviewRgbImgTopDownDataset(Dataset, metaclass=ABCMeta):
                                               threshold_bbox)
             norm = _calc_distances(outputs, gts, masks, threshold_bbox)
             no_norm = _calc_distances(outputs, gts, masks, threshold_bbox_for_pcke)
+            # no_norm_cm = no_norm / real_measure_factors
             error_one = norm / no_norm
             mean_one = error_one.mean()
             pixels_thr = pck_thr / mean_one
+            # error_one_cm = norm / no_norm_cm
+            # mean_one_cm = error_one_cm.mean()
+            # cm_thr = pck_thr / mean_one_cm
+            # one_px_in_cm = cm_thr / pixels_thr
             info_str.append(('PCK', pck))
 
         if 'PCKe' in metrics:
             thrs = [1, 2, 3, 4, 5, 10, 15, 20]
-            _, pcke, _ = keypoint_pck_accuracy(outputs, gts, masks, round(pixels_thr), threshold_bbox_for_pcke)
-            info_str.append(('PCKe' + str(pck_thr) + "_" + str(round(pixels_thr)), pcke))
+            _, pcke, _ = keypoint_pck_accuracy(outputs, gts, masks, pixels_thr, threshold_bbox_for_pcke)
+            info_str.append(('PCKe_' + str(pck_thr) + "_" + str(round(pixels_thr, 2)), pcke))  # + "_" + str(round(cm_thr, 2)
             for thr in thrs:
                 _, pcke, _ = keypoint_pck_accuracy(outputs, gts, masks, round(thr), threshold_bbox_for_pcke)
-                info_str.append(('PCKe_' + str(round(thr)), pcke))
+                info_str.append(('PCKe_' + str(round(thr)), pcke))  #  + "_" + str(round(thr * one_px_in_cm, 2))
             distances = _calc_distances(outputs, gts, masks, threshold_bbox_for_pcke)
             info_str.append(('PCKdis', distances))
+            # nt_out = np.delete(outputs, 0, axis=1)
+            # nt_gts = np.delete(gts, 0, axis=1)
+            # nt_masks = np.delete(masks, 0, axis=1)
+            # nt_dis = _calc_distances(nt_out, nt_gts, nt_masks, threshold_bbox_for_pcke)
+            # info_str.append(('PCK_NT_DIS', nt_dis))
 
         if 'PCKh' in metrics:
             _, pckh, _ = keypoint_pck_accuracy(outputs, gts, masks, pckh_thr,

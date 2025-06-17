@@ -36,7 +36,7 @@ evaluate the joint error.
 
 ```shell
 # single-gpu testing
-python tools/test.py configs/mesh/hmr/hmr_resnet_50.py \
+python tools/test_source.py configs/mesh/hmr/hmr_resnet_50.py \
 models/pytorch/hmr/hmr_mesh_224x224-c21e8229_20201015.pth --eval=joint_error
 
 # multiple-gpu testing

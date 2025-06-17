@@ -15,7 +15,6 @@ from mmpose.apis import multi_gpu_test, single_gpu_test
 from mmpose.datasets import build_dataloader, build_dataset
 from mmpose.models import build_posenet
 from mmpose.utils import setup_multi_processes
-from vis_module import save_evaluation_images
 
 try:
     from mmcv.runner import wrap_fp16_model
@@ -68,7 +67,6 @@ def parse_args():
         default='none',
         help='job launcher')
     parser.add_argument('--local_rank', type=int, default=0)
-    parser.add_argument('--predict_images', type=bool, default=False)
     args = parser.parse_args()
     if 'LOCAL_RANK' not in os.environ:
         os.environ['LOCAL_RANK'] = str(args.local_rank)
@@ -177,13 +175,7 @@ def main():
             print(f'\nwriting results to {args.out}')
             mmcv.dump(outputs, args.out)
 
-        results = dataset.evaluate(outputs, cfg.work_dir, err_dis=True, **eval_config)
-        if args.predict_images:
-            save_evaluation_images(args_pose_config=args.config,
-                                   args_pose_checkpoint=args.checkpoint,
-                                   args_img_root=dataset.img_prefix,
-                                   args_out_img_root=cfg.work_dir + "_images",
-                                   args_json_file=dataset.ann_file)
+        results = dataset.evaluate(outputs, cfg.work_dir, **eval_config)
         for k, v in sorted(results.items()):
             print(f'{k}: {v}')
 

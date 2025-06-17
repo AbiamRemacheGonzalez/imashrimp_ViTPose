@@ -49,13 +49,13 @@ MMPose 提供了一些测试脚本用于测试数据集上的指标（如 COCO, 
 
 ```shell
 # 单 GPU 测试
-python tools/test.py ${CONFIG_FILE} ${CHECKPOINT_FILE} [--out ${RESULT_FILE}] [--fuse-conv-bn] \
+python tools/test_source.py ${CONFIG_FILE} ${CHECKPOINT_FILE} [--out ${RESULT_FILE}] [--fuse-conv-bn] \
     [--eval ${EVAL_METRICS}] [--gpu_collect] [--tmpdir ${TMPDIR}] [--cfg-options ${CFG_OPTIONS}] \
     [--launcher ${JOB_LAUNCHER}] [--local_rank ${LOCAL_RANK}]
 
 # CPU 测试：禁用 GPU 并运行测试脚本
 export CUDA_VISIBLE_DEVICES=-1
-python tools/test.py ${CONFIG_FILE} ${CHECKPOINT_FILE} [--out ${RESULT_FILE}] \
+python tools/test_source.py ${CONFIG_FILE} ${CHECKPOINT_FILE} [--out ${RESULT_FILE}] \
     [--eval ${EVAL_METRICS}]
 
 # 多 GPU 测试
@@ -157,7 +157,7 @@ evaluation = dict(interval=5)  # 每 5 轮训练进行一次模型评估
 ### 使用单个 GPU 训练
 
 ```shell
-python tools/train.py ${CONFIG_FILE} [optional arguments]
+python tools/train_source.py ${CONFIG_FILE} [optional arguments]
 ```
 
 如果用户想在命令中指定工作目录，则需要增加参数 `--work-dir ${YOUR_WORK_DIR}`

@@ -1,35 +1,23 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-import copy
-import time
-from mmcv.runner import get_dist_info, init_dist, set_random_seed
-from mmcv.utils import get_git_hash
-
-from mmpose import __version__
-from mmpose.apis import init_random_seed, train_model
-from mmpose.utils import collect_env, get_root_logger, setup_multi_processes
 import argparse
+import copy
 import os
 import os.path as osp
+import time
 import warnings
 
 import mmcv
 import torch
 from mmcv import Config, DictAction
-from mmcv.runner import get_dist_info, init_dist, load_checkpoint
+from mmcv.runner import get_dist_info, init_dist, set_random_seed
+from mmcv.utils import get_git_hash
 
-from mmpose.datasets import build_dataloader, build_dataset
+from mmpose import __version__
+from mmpose.apis import init_random_seed, train_model
+from mmpose.datasets import build_dataset
 from mmpose.models import build_posenet
-from mmpose.utils import setup_multi_processes
-
-try:
-    from mmcv.runner import wrap_fp16_model
-except ImportError:
-    warnings.warn('auto_fp16 from mmpose will be deprecated from v0.15.0'
-                  'Please install mmcv>=1.1.4')
-    from mmpose.core import wrap_fp16_model
-
-warnings.filterwarnings("ignore", category=UserWarning)
-
+from mmpose.utils import collect_env, get_root_logger, setup_multi_processes
+import mmcv_custom
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Train a pose model')
@@ -46,19 +34,19 @@ def parse_args():
         '--gpus',
         type=int,
         help='(Deprecated, please use --gpu-id) number of gpus to use '
-             '(only applicable to non-distributed training)')
+        '(only applicable to non-distributed training)')
     group_gpus.add_argument(
         '--gpu-ids',
         type=int,
         nargs='+',
         help='(Deprecated, please use --gpu-id) ids of gpus to use '
-             '(only applicable to non-distributed training)')
+        '(only applicable to non-distributed training)')
     group_gpus.add_argument(
         '--gpu-id',
         type=int,
         default=0,
         help='id of gpu to use '
-             '(only applicable to non-distributed training)')
+        '(only applicable to non-distributed training)')
     parser.add_argument('--seed', type=int, default=None, help='random seed')
     parser.add_argument(
         '--deterministic',
@@ -70,8 +58,8 @@ def parse_args():
         action=DictAction,
         default={},
         help='override some settings in the used config, the key-value pair '
-             'in xxx=yyy format will be merged into config file. For example, '
-             "'--cfg-options model.backbone.depth=18 model.backbone.with_cp=True'")
+        'in xxx=yyy format will be merged into config file. For example, '
+        "'--cfg-options model.backbone.depth=18 model.backbone.with_cp=True'")
     parser.add_argument(
         '--launcher',
         choices=['none', 'pytorch', 'slurm', 'mpi'],
@@ -198,7 +186,7 @@ def main():
         datasets,
         cfg,
         distributed=distributed,
-        validate=False,
+        validate=(not args.no_validate),
         timestamp=timestamp,
         meta=meta)
 

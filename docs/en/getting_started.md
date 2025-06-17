@@ -50,13 +50,13 @@ You can use the following commands to test a dataset.
 
 ```shell
 # single-gpu testing
-python tools/test.py ${CONFIG_FILE} ${CHECKPOINT_FILE} [--out ${RESULT_FILE}] [--fuse-conv-bn] \
+python tools/test_source.py ${CONFIG_FILE} ${CHECKPOINT_FILE} [--out ${RESULT_FILE}] [--fuse-conv-bn] \
     [--eval ${EVAL_METRICS}] [--gpu_collect] [--tmpdir ${TMPDIR}] [--cfg-options ${CFG_OPTIONS}] \
     [--launcher ${JOB_LAUNCHER}] [--local_rank ${LOCAL_RANK}]
 
 # CPU: disable GPUs and run single-gpu testing script
 export CUDA_VISIBLE_DEVICES=-1
-python tools/test.py ${CONFIG_FILE} ${CHECKPOINT_FILE} [--out ${RESULT_FILE}] \
+python tools/test_source.py ${CONFIG_FILE} ${CHECKPOINT_FILE} [--out ${RESULT_FILE}] \
     [--eval ${EVAL_METRICS}]
 
 # multi-gpu testing
@@ -158,7 +158,7 @@ According to the [Linear Scaling Rule](https://arxiv.org/abs/1706.02677), you ne
 ### Train with a single GPU
 
 ```shell
-python tools/train.py ${CONFIG_FILE} [optional arguments]
+python tools/train_source.py ${CONFIG_FILE} [optional arguments]
 ```
 
 If you want to specify the working directory in the command, you can add an argument `--work-dir ${YOUR_WORK_DIR}`.

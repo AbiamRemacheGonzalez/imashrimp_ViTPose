@@ -2,6 +2,8 @@
 import warnings
 from collections.abc import Sequence
 
+import torch
+
 import mmcv
 import numpy as np
 from mmcv.parallel import DataContainer as DC
@@ -32,7 +34,10 @@ class ToTensor:
             results['img'] = [F.to_tensor(img) for img in results['img']]
         else:
             results['img'] = F.to_tensor(results['img'])
-
+            if results['img'].shape[0] == 4:
+                results['img'] = results['img'].to(dtype=torch.float32).div(255)
+            if results['img'].shape[0] == 1:
+                results['img'] = results['img'].to(dtype=torch.float32).div(255)
         return results
 
 

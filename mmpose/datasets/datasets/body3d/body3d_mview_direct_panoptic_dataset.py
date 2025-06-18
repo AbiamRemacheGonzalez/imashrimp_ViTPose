@@ -8,13 +8,13 @@ import tempfile
 import warnings
 from collections import OrderedDict
 
-import mmcv
+import imashrimp_mmcv.mmcv as mmcv
 import numpy as np
-from mmcv import Config, deprecated_api_warning
+from imashrimp_mmcv.mmcv import Config, deprecated_api_warning
 
-from mmpose.core.camera import SimpleCamera
-from mmpose.datasets.builder import DATASETS
-from mmpose.datasets.datasets.base import Kpt3dMviewRgbImgDirectDataset
+from imashrimp_ViTPose.mmpose.core.camera import SimpleCamera
+from imashrimp_ViTPose.mmpose.datasets.builder import DATASETS
+from imashrimp_ViTPose.mmpose.datasets.datasets.base import Kpt3dMviewRgbImgDirectDataset
 
 
 @DATASETS.register_module()

@@ -3,17 +3,17 @@
 # Original licence: Apache License 2.0.
 # ------------------------------------------------------------------------------
 
-import mmcv
+import imashrimp_mmcv.mmcv as mmcv
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.checkpoint as cp
-from mmcv.cnn import (ConvModule, DepthwiseSeparableConvModule,
+from imashrimp_mmcv.mmcv.cnn import (ConvModule, DepthwiseSeparableConvModule,
                       build_conv_layer, build_norm_layer, constant_init,
                       normal_init)
 from torch.nn.modules.batchnorm import _BatchNorm
 
-from mmpose.utils import get_root_logger
+from imashrimp_ViTPose.mmpose.utils import get_root_logger
 from ..builder import BACKBONES
 from .utils import channel_shuffle, load_checkpoint
 
@@ -755,7 +755,7 @@ class LiteHRNet(nn.Module):
             memory while slowing down the training speed.
 
     Example:
-        >>> from mmpose.models import LiteHRNet
+        >>> from imashrimp_ViTPose.mmpose.models import LiteHRNet
         >>> import torch
         >>> extra=dict(
         >>>    stem=dict(stem_channels=32, out_channels=32, expand_ratio=1),

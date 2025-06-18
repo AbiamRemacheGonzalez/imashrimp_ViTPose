@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 import torch
 
-from mmpose.models import (DeepposeRegressionHead, TopdownHeatmapMSMUHead,
+from imashrimp_ViTPose.mmpose.models import (DeepposeRegressionHead, TopdownHeatmapMSMUHead,
                            TopdownHeatmapMultiStageHead,
                            TopdownHeatmapSimpleHead, ViPNASHeatmapSimpleHead)
 

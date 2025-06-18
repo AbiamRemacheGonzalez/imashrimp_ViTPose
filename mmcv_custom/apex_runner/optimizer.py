@@ -1,4 +1,4 @@
-from mmcv.runner import OptimizerHook, HOOKS
+from imashrimp_mmcv.mmcv.runner import OptimizerHook, HOOKS
 try:
     import apex
 except:

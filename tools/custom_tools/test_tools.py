@@ -6,13 +6,14 @@ import math
 import cv2
 from xtcocotools.coco import COCO
 import numpy as np
-from mmpose.core.evaluation.top_down_eval import (_get_max_preds)
-from mmpose.core.evaluation.top_down_eval import (_calc_distances)
 from tqdm import tqdm
 import seaborn as sns
-from pixelconversor.conversor.pixel_to_cm_conversor.conversor import PixelToCentimeterConversor
-from pixelconversor.conversor.comparer.comparer import PopulationComparerByView
-from pixelconversor.conversor.searcher.utils import base as bs
+from imashrimp_ViTPose.mmpose.core.evaluation.top_down_eval import (_get_max_preds)
+from imashrimp_ViTPose.mmpose.core.evaluation.top_down_eval import (_calc_distances)
+
+from pixel_to_cm_conversor.conversor import PixelToCentimeterConversor
+from comparer.comparer import PopulationComparerByView
+from searcher.utils import base as bs
 
 
 def save_error_per_point_histogram_old(param, path_to_save):
@@ -463,8 +464,8 @@ def are_two_generations(df):
     # Comprobar si hay dos poblaciones diferentes
     has_tipo_1 = df['code'].str.match(tipo_1_pat).any()
     has_tipo_2 = df['code'].str.match(tipo_2_pat).any()
-
-    if has_tipo_1 and has_tipo_2:
+    has_total = "total" in list(df.columns)
+    if has_tipo_1 and has_tipo_2 and has_total:
         return True
     else:
         return False
@@ -527,12 +528,6 @@ def save_distances_with_model_conversion(dis, skeleton_names, img_codes, img_apa
             df_cm[col] = conversor.predict_by_model(cod, X)
             outliers = detectar_outliers(df_cm, df_pix, col)
             outliers_acc.append(outliers)
-            # if outliers.shape[0] > 0:
-            #     c = col + "_pix"
-            #     print(f"\t X max: {X[c].max()} | X min: {X[c].min()}")
-            #     print(f"\t output file: {out_file}")
-            #     print(f'\t\tOutliers for {col}:')
-            #     print(outliers)
     outliers_df = pd.concat(outliers_acc, ignore_index=True)
     outliers_df.to_csv(out_file[:-4] + "_outliers.csv", index=False)
     df = df_cm[['code', 'point_of_view', 'angle'] + skeleton_names]

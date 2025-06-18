@@ -3,9 +3,9 @@ import pytest
 import torch
 from torch.nn.modules.batchnorm import _BatchNorm
 
-from mmpose.models.backbones import LiteHRNet
-from mmpose.models.backbones.litehrnet import LiteHRModule
-from mmpose.models.backbones.resnet import Bottleneck
+from imashrimp_ViTPose.mmpose.models.backbones import LiteHRNet
+from imashrimp_ViTPose.mmpose.models.backbones.litehrnet import LiteHRModule
+from imashrimp_ViTPose.mmpose.models.backbones.resnet import Bottleneck
 
 
 def is_norm(modules):

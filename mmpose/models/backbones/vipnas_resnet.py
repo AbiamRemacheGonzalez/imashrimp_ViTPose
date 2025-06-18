@@ -3,9 +3,9 @@ import copy
 
 import torch.nn as nn
 import torch.utils.checkpoint as cp
-from mmcv.cnn import ConvModule, build_conv_layer, build_norm_layer
-from mmcv.cnn.bricks import ContextBlock
-from mmcv.utils.parrots_wrapper import _BatchNorm
+from imashrimp_mmcv.mmcv.cnn import ConvModule, build_conv_layer, build_norm_layer
+from imashrimp_mmcv.mmcv.cnn.bricks import ContextBlock
+from imashrimp_mmcv.mmcv.utils.parrots_wrapper import _BatchNorm
 
 from ..builder import BACKBONES
 from .base_backbone import BaseBackbone

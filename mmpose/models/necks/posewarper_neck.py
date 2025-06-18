@@ -1,18 +1,18 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-import mmcv
+import imashrimp_mmcv.mmcv as mmcv
 import torch
 import torch.nn as nn
-from mmcv.cnn import (build_conv_layer, build_norm_layer, constant_init,
+from imashrimp_mmcv.mmcv.cnn import (build_conv_layer, build_norm_layer, constant_init,
                       normal_init)
-from mmcv.utils import digit_version
+from imashrimp_mmcv.mmcv.utils import digit_version
 from torch.nn.modules.batchnorm import _BatchNorm
 
-from mmpose.models.utils.ops import resize
+from imashrimp_ViTPose.mmpose.models.utils.ops import resize
 from ..backbones.resnet import BasicBlock, Bottleneck
 from ..builder import NECKS
 
 try:
-    from mmcv.ops import DeformConv2d
+    from imashrimp_mmcv.mmcv.ops import DeformConv2d
     has_mmcv_full = True
 except (ImportError, ModuleNotFoundError):
     has_mmcv_full = False

@@ -2,11 +2,11 @@
 import pytest
 import torch
 import torch.nn as nn
-from mmcv.cnn import ConvModule
-from mmcv.utils.parrots_wrapper import _BatchNorm
+from imashrimp_mmcv.mmcv.cnn import ConvModule
+from imashrimp_mmcv.mmcv.utils.parrots_wrapper import _BatchNorm
 
-from mmpose.models.backbones import ResNet, ResNetV1d
-from mmpose.models.backbones.resnet import (BasicBlock, Bottleneck, ResLayer,
+from imashrimp_ViTPose.mmpose.models.backbones import ResNet, ResNetV1d
+from imashrimp_ViTPose.mmpose.models.backbones.resnet import (BasicBlock, Bottleneck, ResLayer,
                                             get_expansion)
 
 

@@ -4,10 +4,10 @@ from collections.abc import Sequence
 
 import torch
 
-import mmcv
+import imashrimp_mmcv.mmcv as mmcv
 import numpy as np
-from mmcv.parallel import DataContainer as DC
-from mmcv.utils import build_from_cfg
+from imashrimp_mmcv.mmcv.parallel import DataContainer as DC
+from imashrimp_mmcv.mmcv.utils import build_from_cfg
 from numpy import random
 from torchvision.transforms import functional as F
 

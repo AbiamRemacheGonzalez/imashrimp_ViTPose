@@ -2,7 +2,7 @@
 import numpy as np
 import torch
 
-from mmpose.core import WeightNormClipHook
+from imashrimp_ViTPose.mmpose.core import WeightNormClipHook
 
 
 def test_weight_norm_clip():

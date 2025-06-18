@@ -2,7 +2,7 @@
 import numpy as np
 from numpy.testing import assert_array_almost_equal
 
-from mmpose.core import (affine_transform, flip_back, fliplr_joints,
+from imashrimp_ViTPose.mmpose.core import (affine_transform, flip_back, fliplr_joints,
                          fliplr_regression, get_affine_transform, rotate_point,
                          transform_preds)
 

@@ -5,7 +5,7 @@ import tempfile
 import numpy as np
 import torch
 
-from mmpose.models.utils import SMPL
+from imashrimp_ViTPose.mmpose.models.utils import SMPL
 from tests.utils.mesh_utils import generate_smpl_weight_file
 
 

@@ -1,5 +1,5 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-import mmcv
+import imashrimp_mmcv.mmcv as mmcv
 import numpy as np
 
 from ..builder import PIPELINES

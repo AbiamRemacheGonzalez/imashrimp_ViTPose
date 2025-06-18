@@ -1,12 +1,12 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import numpy as np
 import torch.nn as nn
-from mmcv.cnn import build_conv_layer, constant_init, kaiming_init
-from mmcv.utils.parrots_wrapper import _BatchNorm
+from imashrimp_mmcv.mmcv.cnn import build_conv_layer, constant_init, kaiming_init
+from imashrimp_mmcv.mmcv.utils.parrots_wrapper import _BatchNorm
 
-from mmpose.core import (WeightNormClipHook, compute_similarity_transform,
+from imashrimp_ViTPose.mmpose.core import (WeightNormClipHook, compute_similarity_transform,
                          fliplr_regression)
-from mmpose.models.builder import HEADS, build_loss
+from imashrimp_ViTPose.mmpose.models.builder import HEADS, build_loss
 
 
 @HEADS.register_module()

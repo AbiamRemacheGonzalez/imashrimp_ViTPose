@@ -4,7 +4,7 @@ import torch
 
 
 def test_multi_loss_factory():
-    from mmpose.models import build_loss
+    from imashrimp_ViTPose.mmpose.models import build_loss
 
     # test heatmap loss
     loss_cfg = dict(type='HeatmapLoss')

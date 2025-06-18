@@ -3,8 +3,8 @@ import pytest
 import torch
 from torch.nn.modules.batchnorm import _BatchNorm
 
-from mmpose.models.backbones import SCNet
-from mmpose.models.backbones.scnet import SCBottleneck, SCConv
+from imashrimp_ViTPose.mmpose.models.backbones import SCNet
+from imashrimp_ViTPose.mmpose.models.backbones.scnet import SCBottleneck, SCConv
 
 
 def is_block(modules):

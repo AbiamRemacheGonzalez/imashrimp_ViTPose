@@ -2,7 +2,7 @@
 import torch
 import torch.nn as nn
 
-from mmpose.core import build_optimizers
+from imashrimp_ViTPose.mmpose.core import build_optimizers
 
 
 class ExampleModel(nn.Module):

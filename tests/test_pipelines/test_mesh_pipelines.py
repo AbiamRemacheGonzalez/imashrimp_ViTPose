@@ -6,7 +6,7 @@ import numpy as np
 import torch
 from numpy.testing import assert_array_almost_equal
 
-from mmpose.datasets.pipelines import (Collect, IUVToTensor, LoadImageFromFile,
+from imashrimp_ViTPose.mmpose.datasets.pipelines import (Collect, IUVToTensor, LoadImageFromFile,
                                        LoadIUVFromFile, MeshAffine,
                                        MeshGetRandomScaleRotation,
                                        MeshRandomChannelNoise, MeshRandomFlip,

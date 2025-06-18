@@ -1,8 +1,8 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import warnings
 
-from mmcv.runner import DistEvalHook as _DistEvalHook
-from mmcv.runner import EvalHook as _EvalHook
+from imashrimp_mmcv.mmcv.runner import DistEvalHook as _DistEvalHook
+from imashrimp_mmcv.mmcv.runner import EvalHook as _EvalHook
 
 MMPOSE_GREATER_KEYS = [
     'acc', 'ap', 'ar', 'pck', 'auc', '3dpck', 'p-3dpck', '3dauc', 'p-3dauc'
@@ -25,7 +25,7 @@ class EvalHook(_EvalHook):
                  **eval_kwargs):
 
         if test_fn is None:
-            from mmpose.apis import single_gpu_test
+            from imashrimp_ViTPose.mmpose.apis import single_gpu_test
             test_fn = single_gpu_test
 
         # to be compatible with the config before v0.16.0
@@ -73,7 +73,7 @@ class DistEvalHook(_DistEvalHook):
                  **eval_kwargs):
 
         if test_fn is None:
-            from mmpose.apis import multi_gpu_test
+            from imashrimp_ViTPose.mmpose.apis import multi_gpu_test
             test_fn = multi_gpu_test
 
         # to be compatible with the config before v0.16.0

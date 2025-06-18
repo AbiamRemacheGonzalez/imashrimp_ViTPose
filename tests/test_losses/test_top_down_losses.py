@@ -2,7 +2,7 @@
 import pytest
 import torch
 
-from mmpose.models import build_loss
+from imashrimp_ViTPose.mmpose.models import build_loss
 
 
 def test_adaptive_wing_loss():

@@ -3,13 +3,13 @@ import copy
 import os.path as osp
 import tempfile
 
-import mmcv
+import imashrimp_mmcv.mmcv as mmcv
 import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal
 
-from mmpose.core import SimpleCamera
-from mmpose.datasets.pipelines import Compose
+from imashrimp_ViTPose.mmpose.core import SimpleCamera
+from imashrimp_ViTPose.mmpose.datasets.pipelines import Compose
 
 H36M_JOINT_IDX = [14, 2, 1, 0, 3, 4, 5, 16, 12, 17, 18, 9, 10, 11, 8, 7, 6]
 

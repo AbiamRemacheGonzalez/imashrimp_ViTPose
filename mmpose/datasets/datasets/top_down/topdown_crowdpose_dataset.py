@@ -1,7 +1,7 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import warnings
 
-from mmcv import Config
+from imashrimp_mmcv.mmcv import Config
 from xtcocotools.cocoeval import COCOeval
 
 from ...builder import DATASETS

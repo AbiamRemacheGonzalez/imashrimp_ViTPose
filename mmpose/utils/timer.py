@@ -4,7 +4,7 @@ from contextlib import contextmanager
 from functools import partial
 
 import numpy as np
-from mmcv import Timer
+from imashrimp_mmcv.mmcv import Timer
 
 
 class RunningAverage():
@@ -37,7 +37,7 @@ class StopWatch:
             of the time consuming.
 
     Example:
-        >>> from mmpose.utils import StopWatch
+        >>> from imashrimp_ViTPose.mmpose.utils import StopWatch
         >>> import time
         >>> stop_watch = StopWatch(window=10)
         >>> with stop_watch.timeit('total'):

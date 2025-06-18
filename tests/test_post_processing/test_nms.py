@@ -1,7 +1,7 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import numpy as np
 
-from mmpose.core.post_processing.nms import nms, oks_iou, oks_nms, soft_oks_nms
+from imashrimp_ViTPose.mmpose.core.post_processing.nms import nms, oks_iou, oks_nms, soft_oks_nms
 
 
 def test_soft_oks_nms():

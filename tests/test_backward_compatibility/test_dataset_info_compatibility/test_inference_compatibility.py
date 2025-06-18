@@ -2,7 +2,7 @@
 import numpy as np
 import pytest
 
-from mmpose.apis import (extract_pose_sequence, get_track_id,
+from imashrimp_ViTPose.mmpose.apis import (extract_pose_sequence, get_track_id,
                          inference_bottom_up_pose_model,
                          inference_pose_lifter_model,
                          inference_top_down_pose_model, init_pose_model,

@@ -5,6 +5,6 @@ import pytest
 
 def test_old_fashion_registry_importing():
     with pytest.warns(DeprecationWarning):
-        from mmpose.models.registry import BACKBONES, HEADS, LOSSES, NECKS, POSENETS  # isort: skip
+        from imashrimp_ViTPose.mmpose.models.registry import BACKBONES, HEADS, LOSSES, NECKS, POSENETS  # isort: skip
     with pytest.warns(DeprecationWarning):
-        from mmpose.datasets.registry import DATASETS, PIPELINES  # noqa: F401
+        from imashrimp_ViTPose.mmpose.datasets.registry import DATASETS, PIPELINES  # noqa: F401

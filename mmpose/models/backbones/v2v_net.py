@@ -7,7 +7,7 @@
 
 import torch.nn as nn
 import torch.nn.functional as F
-from mmcv.cnn import ConvModule
+from imashrimp_mmcv.mmcv.cnn import ConvModule
 
 from ..builder import BACKBONES
 from .base_backbone import BaseBackbone

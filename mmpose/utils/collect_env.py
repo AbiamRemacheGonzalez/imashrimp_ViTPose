@@ -1,8 +1,8 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-from mmcv.utils import collect_env as collect_basic_env
-from mmcv.utils import get_git_hash
+from imashrimp_mmcv.mmcv.utils import collect_env as collect_basic_env
+from imashrimp_mmcv.mmcv.utils import get_git_hash
 
-import mmpose
+import imashrimp_ViTPose.mmpose as mmpose
 
 
 def collect_env():

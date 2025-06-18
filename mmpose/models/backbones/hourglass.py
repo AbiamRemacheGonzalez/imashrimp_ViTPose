@@ -2,10 +2,10 @@
 import copy
 
 import torch.nn as nn
-from mmcv.cnn import ConvModule, constant_init, normal_init
+from imashrimp_mmcv.mmcv.cnn import ConvModule, constant_init, normal_init
 from torch.nn.modules.batchnorm import _BatchNorm
 
-from mmpose.utils import get_root_logger
+from imashrimp_ViTPose.mmpose.utils import get_root_logger
 from ..builder import BACKBONES
 from .base_backbone import BaseBackbone
 from .resnet import BasicBlock, ResLayer
@@ -105,7 +105,7 @@ class HourglassNet(BaseBackbone):
         norm_cfg (dict): Dictionary to construct and config norm layer.
 
     Example:
-        >>> from mmpose.models import HourglassNet
+        >>> from imashrimp_ViTPose.mmpose.models import HourglassNet
         >>> import torch
         >>> self = HourglassNet()
         >>> self.eval()

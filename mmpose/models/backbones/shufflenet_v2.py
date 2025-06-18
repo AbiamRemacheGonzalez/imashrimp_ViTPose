@@ -5,7 +5,7 @@ import logging
 import torch
 import torch.nn as nn
 import torch.utils.checkpoint as cp
-from mmcv.cnn import ConvModule, constant_init, normal_init
+from imashrimp_mmcv.mmcv.cnn import ConvModule, constant_init, normal_init
 from torch.nn.modules.batchnorm import _BatchNorm
 
 from ..builder import BACKBONES

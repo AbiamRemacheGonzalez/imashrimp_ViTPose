@@ -2,9 +2,9 @@
 import torch
 from torch.nn.modules.batchnorm import _BatchNorm
 
-from mmpose.models.backbones import HRNet
-from mmpose.models.backbones.hrnet import HRModule
-from mmpose.models.backbones.resnet import BasicBlock, Bottleneck
+from imashrimp_ViTPose.mmpose.models.backbones import HRNet
+from imashrimp_ViTPose.mmpose.models.backbones.hrnet import HRModule
+from imashrimp_ViTPose.mmpose.models.backbones.resnet import BasicBlock, Bottleneck
 
 
 def is_block(modules):

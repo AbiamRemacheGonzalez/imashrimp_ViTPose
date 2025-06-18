@@ -1,7 +1,7 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 from abc import ABCMeta, abstractmethod
 
-from mmcv.utils import Registry
+from imashrimp_mmcv.mmcv.utils import Registry
 
 CAMERAS = Registry('camera')
 

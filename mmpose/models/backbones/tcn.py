@@ -2,10 +2,10 @@
 import copy
 
 import torch.nn as nn
-from mmcv.cnn import ConvModule, build_conv_layer, constant_init, kaiming_init
-from mmcv.utils.parrots_wrapper import _BatchNorm
+from imashrimp_mmcv.mmcv.cnn import ConvModule, build_conv_layer, constant_init, kaiming_init
+from imashrimp_mmcv.mmcv.utils.parrots_wrapper import _BatchNorm
 
-from mmpose.core import WeightNormClipHook
+from imashrimp_ViTPose.mmpose.core import WeightNormClipHook
 from ..builder import BACKBONES
 from .base_backbone import BaseBackbone
 
@@ -164,7 +164,7 @@ class TCN(BaseBackbone):
             will be clipped to have a maximum norm of max_norm.
 
     Example:
-        >>> from mmpose.models import TCN
+        >>> from imashrimp_ViTPose.mmpose.models import TCN
         >>> import torch
         >>> self = TCN(in_channels=34)
         >>> self.eval()

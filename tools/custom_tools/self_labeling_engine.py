@@ -2,19 +2,18 @@ import os
 import warnings
 import json
 import cv2
-from mmpose.apis import (inference_top_down_pose_model, init_pose_model)
-from mmpose.datasets import DatasetInfo
+from imashrimp_ViTPose.mmpose.apis import (inference_top_down_pose_model, init_pose_model)
+from imashrimp_ViTPose.mmpose.datasets import DatasetInfo
 import zipfile
 import shutil
-from tools.custom_tools.old.test_tool_old import set_keypoints_circles
 import numpy as np
 
 try:
-    from mmcv.runner import wrap_fp16_model
+    from imashrimp_mmcv.mmcv.runner import wrap_fp16_model
 except ImportError:
-    warnings.warn('auto_fp16 from mmpose will be deprecated from v0.15.0'
+    warnings.warn('auto_fp16 from imashrimp_ViTPose.mmpose will be deprecated from v0.15.0'
                   'Please install mmcv>=1.1.4')
-    from mmpose.core import wrap_fp16_model
+    from imashrimp_ViTPose.mmpose.core import wrap_fp16_model
 
 
 class SelfLabeling:
@@ -274,11 +273,6 @@ class SelfLabeling:
             bbox, abb = get_bbox(keypoints)
             keypoints_f = flat_keypoints(keypoints)
             add_new_image_to_json_file(image_add, i, state_json_data, keypoints=keypoints_f, bbox=bbox, abb=abb)
-
-            if name == 'CI521_LR_0_60E7':
-                image_np = cv2.imread(image_add)
-                set_keypoints_circles(image_np, keypoints, color=(0, 255, 0), args_radius=3)
-                t = cv2.imwrite(f'{name}_1.png', image_np)
 
         create_json(out_temporal_file, state_json_data)
 

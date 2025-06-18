@@ -2,10 +2,10 @@
 import tempfile
 
 import numpy as np
-from mmcv import Config
+from imashrimp_mmcv.mmcv import Config
 
-from mmpose.datasets import DATASETS
-from mmpose.datasets.builder import build_dataset
+from imashrimp_ViTPose.mmpose.datasets import DATASETS
+from imashrimp_ViTPose.mmpose.datasets.builder import build_dataset
 
 
 def test_body3d_h36m_dataset():

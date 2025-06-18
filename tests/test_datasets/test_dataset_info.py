@@ -1,5 +1,5 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-from mmpose.datasets import DatasetInfo
+from imashrimp_ViTPose.mmpose.datasets import DatasetInfo
 
 
 def test_dataset_info():

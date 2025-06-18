@@ -3,7 +3,7 @@ import torch
 
 
 def test_bce_loss():
-    from mmpose.models import build_loss
+    from imashrimp_ViTPose.mmpose.models import build_loss
 
     # test BCE loss without target weight(None)
     loss_cfg = dict(type='BCELoss')

@@ -2,7 +2,7 @@
 import pytest
 import torch
 
-from mmpose.models import RSN
+from imashrimp_ViTPose.mmpose.models import RSN
 
 
 def test_rsn_backbone():

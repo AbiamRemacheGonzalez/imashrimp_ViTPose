@@ -2,7 +2,7 @@
 import numpy as np
 import pytest
 
-from mmpose.core import keypoint_3d_auc, keypoint_3d_pck
+from imashrimp_ViTPose.mmpose.core import keypoint_3d_auc, keypoint_3d_pck
 
 
 def test_keypoint_3d_pck():

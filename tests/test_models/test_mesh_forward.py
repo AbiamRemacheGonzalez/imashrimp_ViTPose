@@ -5,8 +5,8 @@ import tempfile
 import numpy as np
 import torch
 
-from mmpose.core.optimizer import build_optimizers
-from mmpose.models.detectors.mesh import ParametricMesh
+from imashrimp_ViTPose.mmpose.core.optimizer import build_optimizers
+from imashrimp_ViTPose.mmpose.models.detectors.mesh import ParametricMesh
 from tests.utils.mesh_utils import generate_smpl_weight_file
 
 

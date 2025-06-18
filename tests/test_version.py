@@ -1,5 +1,5 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-import mmpose
+import imashrimp_ViTPose.mmpose as mmpose
 
 
 def test_version():

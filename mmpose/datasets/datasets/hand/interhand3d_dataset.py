@@ -6,10 +6,10 @@ from collections import OrderedDict
 
 import json_tricks as json
 import numpy as np
-from mmcv import Config, deprecated_api_warning
+from imashrimp_mmcv.mmcv import Config, deprecated_api_warning
 
-from mmpose.core.evaluation.top_down_eval import keypoint_epe
-from mmpose.datasets.builder import DATASETS
+from imashrimp_ViTPose.mmpose.core.evaluation.top_down_eval import keypoint_epe
+from imashrimp_ViTPose.mmpose.datasets.builder import DATASETS
 from ..base import Kpt3dSviewRgbImgTopDownDataset
 
 

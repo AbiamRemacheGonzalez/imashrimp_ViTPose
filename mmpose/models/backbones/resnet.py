@@ -3,9 +3,9 @@ import copy
 
 import torch.nn as nn
 import torch.utils.checkpoint as cp
-from mmcv.cnn import (ConvModule, build_conv_layer, build_norm_layer,
+from imashrimp_mmcv.mmcv.cnn import (ConvModule, build_conv_layer, build_norm_layer,
                       constant_init, kaiming_init)
-from mmcv.utils.parrots_wrapper import _BatchNorm
+from imashrimp_mmcv.mmcv.utils.parrots_wrapper import _BatchNorm
 
 from ..builder import BACKBONES
 from .base_backbone import BaseBackbone
@@ -461,7 +461,7 @@ class ResNet(BaseBackbone):
             in resblocks to let them behave as identity. Default: True.
 
     Example:
-        >>> from mmpose.models import ResNet
+        >>> from imashrimp_ViTPose.mmpose.models import ResNet
         >>> import torch
         >>> self = ResNet(depth=18, out_indices=(0, 1, 2, 3))
         >>> self.eval()

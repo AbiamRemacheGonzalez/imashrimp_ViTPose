@@ -1,7 +1,7 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-import mmcv
+import imashrimp_mmcv.mmcv as mmcv
 import torch.nn as nn
-from mmcv.cnn import ConvModule
+from imashrimp_mmcv.mmcv.cnn import ConvModule
 
 
 class SELayer(nn.Module):

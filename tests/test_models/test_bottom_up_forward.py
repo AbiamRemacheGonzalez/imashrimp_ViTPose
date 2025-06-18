@@ -2,7 +2,7 @@
 import numpy as np
 import torch
 
-from mmpose.models.detectors import AssociativeEmbedding
+from imashrimp_ViTPose.mmpose.models.detectors import AssociativeEmbedding
 
 
 def test_ae_forward():

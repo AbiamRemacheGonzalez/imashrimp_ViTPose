@@ -2,7 +2,7 @@
 import numpy as np
 import torch
 import torch.nn as nn
-from mmcv.cnn import build_conv_layer, build_upsample_layer
+from imashrimp_mmcv.mmcv.cnn import build_conv_layer, build_upsample_layer
 
 
 def test_build_upsample_layer():

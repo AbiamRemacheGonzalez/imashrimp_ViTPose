@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 import torch
 
-from mmpose.models import AEHigherResolutionHead, AESimpleHead
+from imashrimp_ViTPose.mmpose.models import AEHigherResolutionHead, AESimpleHead
 
 
 def test_ae_simple_head():

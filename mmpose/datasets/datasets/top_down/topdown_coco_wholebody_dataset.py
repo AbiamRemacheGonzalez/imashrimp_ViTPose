@@ -3,7 +3,7 @@ import os
 import warnings
 
 import numpy as np
-from mmcv import Config
+from imashrimp_mmcv.mmcv import Config
 from xtcocotools.cocoeval import COCOeval
 
 from ...builder import DATASETS

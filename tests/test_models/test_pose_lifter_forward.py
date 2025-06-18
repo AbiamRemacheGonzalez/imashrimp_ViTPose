@@ -1,9 +1,9 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-import mmcv
+import imashrimp_mmcv.mmcv as mmcv
 import numpy as np
 import torch
 
-from mmpose.models import build_posenet
+from imashrimp_ViTPose.mmpose.models import build_posenet
 
 
 def _create_inputs(joint_num_in,

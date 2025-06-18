@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.checkpoint as cp
-from mmcv.cnn import build_conv_layer, build_norm_layer
+from imashrimp_mmcv.mmcv.cnn import build_conv_layer, build_norm_layer
 
 from ..builder import BACKBONES
 from .resnet import Bottleneck, ResNet
@@ -223,7 +223,7 @@ class SCNet(ResNet):
             in resblocks to let them behave as identity.
 
     Example:
-        >>> from mmpose.models import SCNet
+        >>> from imashrimp_ViTPose.mmpose.models import SCNet
         >>> import torch
         >>> self = SCNet(depth=50, out_indices=(0, 1, 2, 3))
         >>> self.eval()

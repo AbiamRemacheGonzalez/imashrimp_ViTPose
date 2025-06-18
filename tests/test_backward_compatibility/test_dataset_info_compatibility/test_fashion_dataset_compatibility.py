@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 from numpy.testing import assert_almost_equal
 
-from mmpose.datasets import DATASETS
+from imashrimp_ViTPose.mmpose.datasets import DATASETS
 from tests.utils.data_utils import convert_db_to_output
 
 

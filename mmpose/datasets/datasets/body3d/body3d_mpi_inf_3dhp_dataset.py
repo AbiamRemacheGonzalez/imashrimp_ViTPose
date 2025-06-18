@@ -4,13 +4,13 @@ import tempfile
 import warnings
 from collections import OrderedDict, defaultdict
 
-import mmcv
+import imashrimp_mmcv.mmcv as mmcv
 import numpy as np
-from mmcv import Config, deprecated_api_warning
+from imashrimp_mmcv.mmcv import Config, deprecated_api_warning
 
-from mmpose.core.evaluation import (keypoint_3d_auc, keypoint_3d_pck,
+from imashrimp_ViTPose.mmpose.core.evaluation import (keypoint_3d_auc, keypoint_3d_pck,
                                     keypoint_mpjpe)
-from mmpose.datasets.datasets.base import Kpt3dSviewKpt2dDataset
+from imashrimp_ViTPose.mmpose.datasets.datasets.base import Kpt3dSviewKpt2dDataset
 from ...builder import DATASETS
 
 

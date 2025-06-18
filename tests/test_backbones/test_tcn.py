@@ -4,8 +4,8 @@ import pytest
 import torch
 import torch.nn as nn
 
-from mmpose.models.backbones import TCN
-from mmpose.models.backbones.tcn import BasicTemporalBlock
+from imashrimp_ViTPose.mmpose.models.backbones import TCN
+from imashrimp_ViTPose.mmpose.models.backbones.tcn import BasicTemporalBlock
 
 
 def test_basic_temporal_block():

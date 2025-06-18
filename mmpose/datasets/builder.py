@@ -5,10 +5,10 @@ import random
 from functools import partial
 
 import numpy as np
-from mmcv.parallel import collate
-from mmcv.runner import get_dist_info
-from mmcv.utils import Registry, build_from_cfg, is_seq_of
-from mmcv.utils.parrots_wrapper import _get_dataloader
+from imashrimp_mmcv.mmcv.parallel import collate
+from imashrimp_mmcv.mmcv.runner import get_dist_info
+from imashrimp_mmcv.mmcv.utils import Registry, build_from_cfg, is_seq_of
+from imashrimp_mmcv.mmcv.utils.parrots_wrapper import _get_dataloader
 from torch.utils.data.dataset import ConcatDataset
 
 from .samplers import DistributedSampler

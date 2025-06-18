@@ -6,8 +6,8 @@ import shutil
 import torch
 from torch.optim import Optimizer
 
-import mmcv
-from mmcv.runner import RUNNERS, IterBasedRunner
+import imashrimp_mmcv.mmcv as mmcv
+from imashrimp_mmcv.mmcv.runner import RUNNERS, IterBasedRunner
 from .checkpoint import save_checkpoint
 
 try:

@@ -2,10 +2,10 @@
 import warnings
 
 import numpy as np
-from mmcv import Config
+from imashrimp_mmcv.mmcv import Config
 from xtcocotools.cocoeval import COCOeval
 
-from mmpose.datasets.builder import DATASETS
+from imashrimp_ViTPose.mmpose.datasets.builder import DATASETS
 from .bottom_up_coco import BottomUpCocoDataset
 
 

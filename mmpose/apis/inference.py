@@ -2,18 +2,18 @@
 import os
 import warnings
 
-import mmcv
+import imashrimp_mmcv.mmcv as mmcv
 import numpy as np
 import torch
-from mmcv.parallel import collate, scatter
-from mmcv.runner import load_checkpoint
+from imashrimp_mmcv.mmcv.parallel import collate, scatter
+from imashrimp_mmcv.mmcv.runner import load_checkpoint
 from PIL import Image
 
-from mmpose.core.post_processing import oks_nms
-from mmpose.datasets.dataset_info import DatasetInfo
-from mmpose.datasets.pipelines import Compose
-from mmpose.models import build_posenet
-from mmpose.utils.hooks import OutputHook
+from imashrimp_ViTPose.mmpose.core.post_processing import oks_nms
+from imashrimp_ViTPose.mmpose.datasets.dataset_info import DatasetInfo
+from imashrimp_ViTPose.mmpose.datasets.pipelines import Compose
+from imashrimp_ViTPose.mmpose.models import build_posenet
+from imashrimp_ViTPose.mmpose.utils.hooks import OutputHook
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
 

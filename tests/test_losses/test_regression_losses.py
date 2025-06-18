@@ -1,7 +1,7 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import torch
 
-from mmpose.models import build_loss
+from imashrimp_ViTPose.mmpose.models import build_loss
 
 
 def test_smooth_l1_loss():

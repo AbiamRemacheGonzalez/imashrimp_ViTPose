@@ -1,12 +1,12 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import cv2
-import mmcv
+import imashrimp_mmcv.mmcv as mmcv
 import numpy as np
 import torch
 
-from mmpose.core.post_processing import (affine_transform, fliplr_joints,
+from imashrimp_ViTPose.mmpose.core.post_processing import (affine_transform, fliplr_joints,
                                          get_affine_transform)
-from mmpose.datasets.builder import PIPELINES
+from imashrimp_ViTPose.mmpose.datasets.builder import PIPELINES
 
 
 def _flip_smpl_pose(pose):

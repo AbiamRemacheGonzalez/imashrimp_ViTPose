@@ -3,8 +3,8 @@ import numpy as np
 import pytest
 import torch
 
-from mmpose.models import HMRMeshHead
-from mmpose.models.misc.discriminator import SMPLDiscriminator
+from imashrimp_ViTPose.mmpose.models import HMRMeshHead
+from imashrimp_ViTPose.mmpose.models.misc.discriminator import SMPLDiscriminator
 
 
 def test_mesh_hmr_head():

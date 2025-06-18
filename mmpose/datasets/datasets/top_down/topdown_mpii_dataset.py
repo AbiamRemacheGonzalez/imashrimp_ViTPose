@@ -5,7 +5,7 @@ import warnings
 from collections import OrderedDict
 
 import numpy as np
-from mmcv import Config, deprecated_api_warning
+from imashrimp_mmcv.mmcv import Config, deprecated_api_warning
 from scipy.io import loadmat, savemat
 
 from ...builder import DATASETS

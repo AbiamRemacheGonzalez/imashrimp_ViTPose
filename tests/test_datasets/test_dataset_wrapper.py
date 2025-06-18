@@ -1,7 +1,7 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-from mmcv import Config
+from imashrimp_mmcv.mmcv import Config
 
-from mmpose.datasets.builder import build_dataset
+from imashrimp_ViTPose.mmpose.datasets.builder import build_dataset
 
 
 def test_concat_dataset():

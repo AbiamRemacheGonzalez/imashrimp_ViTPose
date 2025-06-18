@@ -7,7 +7,7 @@ import torch
 from numpy.testing import assert_array_almost_equal
 from xtcocotools.coco import COCO
 
-from mmpose.datasets.pipelines import (Collect, LoadImageFromFile,
+from imashrimp_ViTPose.mmpose.datasets.pipelines import (Collect, LoadImageFromFile,
                                        NormalizeTensor, TopDownAffine,
                                        TopDownGenerateTarget,
                                        TopDownGetRandomScaleRotation,

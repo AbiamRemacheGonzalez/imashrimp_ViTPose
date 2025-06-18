@@ -1,7 +1,7 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import torch
 
-from mmpose.models.backbones import AlexNet
+from imashrimp_ViTPose.mmpose.models.backbones import AlexNet
 
 
 def test_alexnet_backbone():

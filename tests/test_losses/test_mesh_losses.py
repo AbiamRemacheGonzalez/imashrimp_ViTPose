@@ -3,8 +3,8 @@ import pytest
 import torch
 from numpy.testing import assert_almost_equal
 
-from mmpose.models import build_loss
-from mmpose.models.utils.geometry import batch_rodrigues
+from imashrimp_ViTPose.mmpose.models import build_loss
+from imashrimp_ViTPose.mmpose.models.utils.geometry import batch_rodrigues
 
 
 def test_mesh_loss():

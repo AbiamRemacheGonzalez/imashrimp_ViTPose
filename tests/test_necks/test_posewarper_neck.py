@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 import torch
 
-from mmpose.models.necks import PoseWarperNeck
+from imashrimp_ViTPose.mmpose.models.necks import PoseWarperNeck
 
 
 def test_posewarper_neck():

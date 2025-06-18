@@ -1,9 +1,9 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import pytest
 import torch
-from mmcv.utils.parrots_wrapper import _BatchNorm
+from imashrimp_mmcv.mmcv.utils.parrots_wrapper import _BatchNorm
 
-from mmpose.models.backbones import VGG
+from imashrimp_ViTPose.mmpose.models.backbones import VGG
 
 
 def check_norm_state(modules, train_state):

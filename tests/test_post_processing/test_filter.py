@@ -1,7 +1,7 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import numpy as np
 
-from mmpose.core.post_processing.one_euro_filter import OneEuroFilter
+from imashrimp_ViTPose.mmpose.core.post_processing.one_euro_filter import OneEuroFilter
 
 
 def test_one_euro_filter():

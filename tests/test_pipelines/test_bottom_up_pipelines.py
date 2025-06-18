@@ -7,7 +7,7 @@ import pytest
 import xtcocotools
 from xtcocotools.coco import COCO
 
-from mmpose.datasets.pipelines import (BottomUpGenerateHeatmapTarget,
+from imashrimp_ViTPose.mmpose.datasets.pipelines import (BottomUpGenerateHeatmapTarget,
                                        BottomUpGeneratePAFTarget,
                                        BottomUpGenerateTarget,
                                        BottomUpGetImgSize,

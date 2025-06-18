@@ -2,7 +2,7 @@
 import numpy as np
 import torch
 
-from mmpose.core import (aggregate_scale, aggregate_stage_flip,
+from imashrimp_ViTPose.mmpose.core import (aggregate_scale, aggregate_stage_flip,
                          flip_feature_maps, get_group_preds, split_ae_outputs)
 
 

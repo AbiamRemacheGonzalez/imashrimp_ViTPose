@@ -3,7 +3,7 @@ import warnings
 
 import numpy as np
 
-from mmpose.core import OneEuroFilter, oks_iou
+from imashrimp_ViTPose.mmpose.core import OneEuroFilter, oks_iou
 
 
 def _compute_iou(bboxA, bboxB):

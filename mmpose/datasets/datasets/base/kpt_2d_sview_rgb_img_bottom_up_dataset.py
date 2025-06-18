@@ -7,8 +7,8 @@ import xtcocotools
 from torch.utils.data import Dataset
 from xtcocotools.coco import COCO
 
-from mmpose.datasets import DatasetInfo
-from mmpose.datasets.pipelines import Compose
+from imashrimp_ViTPose.mmpose.datasets import DatasetInfo
+from imashrimp_ViTPose.mmpose.datasets.pipelines import Compose
 
 
 class Kpt2dSviewRgbImgBottomUpDataset(Dataset, metaclass=ABCMeta):

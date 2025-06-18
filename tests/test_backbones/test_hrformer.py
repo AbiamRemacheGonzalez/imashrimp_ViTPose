@@ -2,7 +2,7 @@
 import pytest
 import torch
 
-from mmpose.models.backbones.hrformer import (HRFomerModule, HRFormer,
+from imashrimp_ViTPose.mmpose.models.backbones.hrformer import (HRFomerModule, HRFormer,
                                               HRFormerBlock)
 
 

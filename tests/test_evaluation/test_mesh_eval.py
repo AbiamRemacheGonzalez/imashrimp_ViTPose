@@ -2,7 +2,7 @@
 import numpy as np
 from numpy.testing import assert_array_almost_equal
 
-from mmpose.core import compute_similarity_transform
+from imashrimp_ViTPose.mmpose.core import compute_similarity_transform
 
 
 def test_compute_similarity_transform():

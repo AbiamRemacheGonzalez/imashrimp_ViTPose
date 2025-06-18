@@ -3,10 +3,10 @@ import os.path as osp
 
 import numpy as np
 import pytest
-from mmcv import bgr2rgb, build_from_cfg
+from imashrimp_mmcv.mmcv import bgr2rgb, build_from_cfg
 
-from mmpose.datasets import PIPELINES
-from mmpose.datasets.pipelines import Compose
+from imashrimp_ViTPose.mmpose.datasets import PIPELINES
+from imashrimp_ViTPose.mmpose.datasets.pipelines import Compose
 
 
 def check_keys_equal(result_keys, target_keys):

@@ -1,7 +1,7 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import torch
 
-from mmpose.models import builder
+from imashrimp_ViTPose.mmpose.models import builder
 
 
 def test_v2v_net():

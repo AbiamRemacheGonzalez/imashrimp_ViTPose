@@ -95,7 +95,7 @@ class SEResNet(ResNet):
             in resblocks to let them behave as identity. Default: True.
 
     Example:
-        >>> from mmpose.models import SEResNet
+        >>> from imashrimp_ViTPose.mmpose.models import SEResNet
         >>> import torch
         >>> self = SEResNet(depth=50, out_indices=(0, 1, 2, 3))
         >>> self.eval()

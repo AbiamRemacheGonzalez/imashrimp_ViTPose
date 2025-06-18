@@ -1,11 +1,11 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import cv2
-import mmcv
+import imashrimp_mmcv.mmcv as mmcv
 import numpy as np
 import torch
 
-from mmpose.core.visualization.image import imshow_mesh_3d
-from mmpose.models.misc.discriminator import SMPLDiscriminator
+from imashrimp_ViTPose.mmpose.core.visualization.image import imshow_mesh_3d
+from imashrimp_ViTPose.mmpose.models.misc.discriminator import SMPLDiscriminator
 from .. import builder
 from ..builder import POSENETS
 from .base import BasePose

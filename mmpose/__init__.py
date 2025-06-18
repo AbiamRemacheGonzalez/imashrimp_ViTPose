@@ -1,5 +1,5 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-import mmcv
+import imashrimp_mmcv.mmcv as mmcv
 
 from .version import __version__, short_version
 

@@ -1,4 +1,4 @@
-from mmcv import Config, DictAction
+from imashrimp_mmcv.mmcv import Config, DictAction
 from custom_tools.training_engine import TrainingEngine
 import argparse
 import os

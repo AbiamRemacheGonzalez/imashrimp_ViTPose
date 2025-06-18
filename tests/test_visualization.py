@@ -1,11 +1,11 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import tempfile
 
-import mmcv
+import imashrimp_mmcv.mmcv as mmcv
 import numpy as np
 import pytest
 
-from mmpose.core import (apply_bugeye_effect, apply_sunglasses_effect,
+from imashrimp_ViTPose.mmpose.core import (apply_bugeye_effect, apply_sunglasses_effect,
                          imshow_bboxes, imshow_keypoints, imshow_keypoints_3d)
 
 

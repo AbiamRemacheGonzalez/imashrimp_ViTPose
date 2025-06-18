@@ -4,7 +4,7 @@ import copy
 import numpy as np
 import torch
 
-from mmpose.models.detectors import PoseWarper, TopDown
+from imashrimp_ViTPose.mmpose.models.detectors import PoseWarper, TopDown
 
 
 def test_vipnas_forward():

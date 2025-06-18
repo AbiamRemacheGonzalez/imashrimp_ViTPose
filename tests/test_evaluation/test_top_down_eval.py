@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal
 
-from mmpose.core import (keypoint_auc, keypoint_epe, keypoint_pck_accuracy,
+from imashrimp_ViTPose.mmpose.core import (keypoint_auc, keypoint_epe, keypoint_pck_accuracy,
                          keypoints_from_heatmaps, keypoints_from_heatmaps3d,
                          multilabel_classification_accuracy, pose_pck_accuracy)
 

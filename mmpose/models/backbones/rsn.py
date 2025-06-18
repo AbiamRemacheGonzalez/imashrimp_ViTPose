@@ -4,7 +4,7 @@ import copy as cp
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from mmcv.cnn import (ConvModule, MaxPool2d, constant_init, kaiming_init,
+from imashrimp_mmcv.mmcv.cnn import (ConvModule, MaxPool2d, constant_init, kaiming_init,
                       normal_init)
 
 from ..builder import BACKBONES
@@ -530,7 +530,7 @@ class RSN(BaseBackbone):
         expand_times (int): Times by which the in_channels are expanded in RSB.
             Default:26.
     Example:
-        >>> from mmpose.models import RSN
+        >>> from imashrimp_ViTPose.mmpose.models import RSN
         >>> import torch
         >>> self = RSN(num_stages=2,num_units=2,num_blocks=[2,2])
         >>> self.eval()

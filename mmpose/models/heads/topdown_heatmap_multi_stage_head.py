@@ -2,14 +2,14 @@
 import copy as cp
 
 import torch.nn as nn
-from mmcv.cnn import (ConvModule, DepthwiseSeparableConvModule, Linear,
+from imashrimp_mmcv.mmcv.cnn import (ConvModule, DepthwiseSeparableConvModule, Linear,
                       build_activation_layer, build_conv_layer,
                       build_norm_layer, build_upsample_layer, constant_init,
                       kaiming_init, normal_init)
 
-from mmpose.core.evaluation import pose_pck_accuracy
-from mmpose.core.post_processing import flip_back
-from mmpose.models.builder import build_loss
+from imashrimp_ViTPose.mmpose.core.evaluation import pose_pck_accuracy
+from imashrimp_ViTPose.mmpose.core.post_processing import flip_back
+from imashrimp_ViTPose.mmpose.models.builder import build_loss
 from ..builder import HEADS
 from .topdown_heatmap_base_head import TopdownHeatmapBaseHead
 

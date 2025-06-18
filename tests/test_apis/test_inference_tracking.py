@@ -1,8 +1,8 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-from mmpose.apis import (get_track_id, inference_bottom_up_pose_model,
+from imashrimp_ViTPose.mmpose.apis import (get_track_id, inference_bottom_up_pose_model,
                          inference_top_down_pose_model, init_pose_model,
                          vis_pose_tracking_result)
-from mmpose.datasets.dataset_info import DatasetInfo
+from imashrimp_ViTPose.mmpose.datasets.dataset_info import DatasetInfo
 
 
 def test_top_down_pose_tracking_demo():

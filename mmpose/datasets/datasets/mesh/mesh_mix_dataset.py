@@ -4,7 +4,7 @@ from abc import ABCMeta
 import numpy as np
 from torch.utils.data import ConcatDataset, Dataset, WeightedRandomSampler
 
-from mmpose.datasets.builder import DATASETS
+from imashrimp_ViTPose.mmpose.datasets.builder import DATASETS
 from .mesh_base_dataset import MeshBaseDataset
 
 
@@ -25,7 +25,7 @@ class MeshMixDataset(Dataset, metaclass=ABCMeta):
             one.
 
     Example:
-        >>> from mmpose.datasets import MeshMixDataset
+        >>> from imashrimp_ViTPose.mmpose.datasets import MeshMixDataset
         >>> data_cfg = dict(
         >>>     image_size=[256, 256],
         >>>     iuv_size=[64, 64],

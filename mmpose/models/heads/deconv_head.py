@@ -1,11 +1,11 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import torch
 import torch.nn as nn
-from mmcv.cnn import (build_conv_layer, build_norm_layer, build_upsample_layer,
+from imashrimp_mmcv.mmcv.cnn import (build_conv_layer, build_norm_layer, build_upsample_layer,
                       constant_init, normal_init)
 
-from mmpose.models.builder import HEADS, build_loss
-from mmpose.models.utils.ops import resize
+from imashrimp_ViTPose.mmpose.models.builder import HEADS, build_loss
+from imashrimp_ViTPose.mmpose.models.utils.ops import resize
 
 
 @HEADS.register_module()

@@ -2,7 +2,7 @@
 import numpy as np
 import torch
 
-from mmpose.models import build_posenet
+from imashrimp_ViTPose.mmpose.models import build_posenet
 
 
 def test_interhand3d_forward():

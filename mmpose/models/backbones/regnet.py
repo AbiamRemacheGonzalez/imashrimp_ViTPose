@@ -3,7 +3,7 @@ import copy
 
 import numpy as np
 import torch.nn as nn
-from mmcv.cnn import build_conv_layer, build_norm_layer
+from imashrimp_mmcv.mmcv.cnn import build_conv_layer, build_norm_layer
 
 from ..builder import BACKBONES
 from .resnet import ResNet
@@ -45,7 +45,7 @@ class RegNet(ResNet):
             in resblocks to let them behave as identity. Default: True.
 
     Example:
-        >>> from mmpose.models import RegNet
+        >>> from imashrimp_ViTPose.mmpose.models import RegNet
         >>> import torch
         >>> self = RegNet(
                 arch=dict(

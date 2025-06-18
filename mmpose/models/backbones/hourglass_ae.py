@@ -2,10 +2,10 @@
 import copy
 
 import torch.nn as nn
-from mmcv.cnn import ConvModule, MaxPool2d, constant_init, normal_init
+from imashrimp_mmcv.mmcv.cnn import ConvModule, MaxPool2d, constant_init, normal_init
 from torch.nn.modules.batchnorm import _BatchNorm
 
-from mmpose.utils import get_root_logger
+from imashrimp_ViTPose.mmpose.utils import get_root_logger
 from ..builder import BACKBONES
 from .base_backbone import BaseBackbone
 from .utils import load_checkpoint
@@ -88,7 +88,7 @@ class HourglassAENet(BaseBackbone):
         norm_cfg (dict): Dictionary to construct and config norm layer.
 
     Example:
-        >>> from mmpose.models import HourglassAENet
+        >>> from imashrimp_ViTPose.mmpose.models import HourglassAENet
         >>> import torch
         >>> self = HourglassAENet()
         >>> self.eval()

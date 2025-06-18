@@ -4,11 +4,11 @@ import os
 import warnings
 
 import cv2
-import mmcv
+import imashrimp_mmcv.mmcv as mmcv
 import numpy as np
 from matplotlib import pyplot as plt
-from mmcv.utils.misc import deprecated_api_warning
-from mmcv.visualization.color import color_val
+from imashrimp_mmcv.mmcv.utils.misc import deprecated_api_warning
+from imashrimp_mmcv.mmcv.visualization.color import color_val
 
 try:
     import trimesh

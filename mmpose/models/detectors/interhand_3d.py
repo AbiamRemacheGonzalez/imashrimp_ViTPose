@@ -1,9 +1,9 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-import mmcv
+import imashrimp_mmcv.mmcv as mmcv
 import numpy as np
-from mmcv.utils.misc import deprecated_api_warning
+from imashrimp_mmcv.mmcv.utils.misc import deprecated_api_warning
 
-from mmpose.core import imshow_keypoints, imshow_keypoints_3d
+from imashrimp_ViTPose.mmpose.core import imshow_keypoints, imshow_keypoints_3d
 from ..builder import POSENETS
 from .top_down import TopDown
 

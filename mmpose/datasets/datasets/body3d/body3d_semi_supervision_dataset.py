@@ -2,7 +2,7 @@
 import numpy as np
 from torch.utils.data import Dataset
 
-from mmpose.datasets.builder import DATASETS, build_dataset
+from imashrimp_ViTPose.mmpose.datasets.builder import DATASETS, build_dataset
 
 
 @DATASETS.register_module()

@@ -15,12 +15,12 @@ from torch.optim import Optimizer
 from torch.utils import model_zoo
 from torch.nn import functional as F
 
-import mmcv
-from mmcv.fileio import FileClient
-from mmcv.fileio import load as load_file
-from mmcv.parallel import is_module_wrapper
-from mmcv.utils import mkdir_or_exist
-from mmcv.runner import get_dist_info
+import imashrimp_mmcv.mmcv as mmcv
+from imashrimp_mmcv.mmcv.fileio import FileClient
+from imashrimp_mmcv.mmcv.fileio import load as load_file
+from imashrimp_mmcv.mmcv.parallel import is_module_wrapper
+from imashrimp_mmcv.mmcv.utils import mkdir_or_exist
+from imashrimp_mmcv.mmcv.runner import get_dist_info
 
 from scipy import interpolate
 import numpy as np

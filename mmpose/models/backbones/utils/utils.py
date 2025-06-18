@@ -1,7 +1,7 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 from collections import OrderedDict
 
-from mmcv.runner.checkpoint import _load_checkpoint, load_state_dict
+from imashrimp_mmcv.mmcv.runner.checkpoint import _load_checkpoint, load_state_dict
 
 
 def load_checkpoint(model,

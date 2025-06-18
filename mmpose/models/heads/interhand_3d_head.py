@@ -3,14 +3,14 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from mmcv.cnn import (build_conv_layer, build_norm_layer, build_upsample_layer,
+from imashrimp_mmcv.mmcv.cnn import (build_conv_layer, build_norm_layer, build_upsample_layer,
                       constant_init, normal_init)
 
-from mmpose.core.evaluation.top_down_eval import (
+from imashrimp_ViTPose.mmpose.core.evaluation.top_down_eval import (
     keypoints_from_heatmaps3d, multilabel_classification_accuracy)
-from mmpose.core.post_processing import flip_back
-from mmpose.models.builder import build_loss
-from mmpose.models.necks import GlobalAveragePooling
+from imashrimp_ViTPose.mmpose.core.post_processing import flip_back
+from imashrimp_ViTPose.mmpose.models.builder import build_loss
+from imashrimp_ViTPose.mmpose.models.necks import GlobalAveragePooling
 from ..builder import HEADS
 
 

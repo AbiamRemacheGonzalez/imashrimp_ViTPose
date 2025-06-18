@@ -1,14 +1,14 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import copy
 
-import mmcv
+import imashrimp_mmcv.mmcv as mmcv
 import numpy as np
 import torch
-from mmcv.utils import build_from_cfg
+from imashrimp_mmcv.mmcv.utils import build_from_cfg
 
-from mmpose.core.camera import CAMERAS
-from mmpose.core.post_processing import fliplr_regression
-from mmpose.datasets.builder import PIPELINES
+from imashrimp_ViTPose.mmpose.core.camera import CAMERAS
+from imashrimp_ViTPose.mmpose.core.post_processing import fliplr_regression
+from imashrimp_ViTPose.mmpose.datasets.builder import PIPELINES
 
 
 @PIPELINES.register_module()

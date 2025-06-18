@@ -3,28 +3,28 @@ from pylab import *
 import json
 import copy
 import time
-from mmcv.runner import set_random_seed
-from mmcv.utils import get_git_hash
+from imashrimp_mmcv.mmcv.runner import set_random_seed
+from imashrimp_mmcv.mmcv.utils import get_git_hash
 
-from mmpose import __version__
-# from mmpose.apis import init_random_seed, train_model
-from mmpose.apis import init_random_seed_for_search, train_model_for_search
-from mmpose.utils import collect_env
+from imashrimp_ViTPose.mmpose import __version__
+# from imashrimp_ViTPose.mmpose.apis import init_random_seed, train_model
+from imashrimp_ViTPose.mmpose.apis import init_random_seed_for_search, train_model_for_search
+from imashrimp_ViTPose.mmpose.utils import collect_env
 import os
 import os.path as osp
 import warnings
 
-import mmcv
+import imashrimp_mmcv.mmcv as mmcv
 import torch
-from mmcv import Config
-from mmcv.runner import get_dist_info, init_dist
+from imashrimp_mmcv.mmcv import Config
+from imashrimp_mmcv.mmcv.runner import get_dist_info, init_dist
 
-from mmpose.datasets import build_dataset
-from mmpose.models import build_posenet
-from mmpose.utils import setup_multi_processes
+from imashrimp_ViTPose.mmpose.datasets import build_dataset
+from imashrimp_ViTPose.mmpose.models import build_posenet
+from imashrimp_ViTPose.mmpose.utils import setup_multi_processes
 
 # test
-from tools.custom_tools.base_tool import create_custom_file
+from .base_tool import create_custom_file
 
 #
 # supervise
@@ -33,11 +33,11 @@ import math
 
 #
 try:
-    from mmcv.runner import wrap_fp16_model
+    from imashrimp_mmcv.mmcv.runner import wrap_fp16_model
 except ImportError:
-    warnings.warn('auto_fp16 from mmpose will be deprecated from v0.15.0'
+    warnings.warn('auto_fp16 from imashrimp_ViTPose.mmpose will be deprecated from v0.15.0'
                   'Please install mmcv>=1.1.4')
-    from mmpose.core import wrap_fp16_model
+    from imashrimp_ViTPose.mmpose.core import wrap_fp16_model
 
 warnings.filterwarnings("ignore", category=UserWarning)
 

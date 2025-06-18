@@ -2,7 +2,7 @@
 import pytest
 import torch
 
-from mmpose.models import MSPN
+from imashrimp_ViTPose.mmpose.models import MSPN
 
 
 def test_mspn_backbone():

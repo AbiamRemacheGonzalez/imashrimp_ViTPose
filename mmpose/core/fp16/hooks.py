@@ -3,8 +3,8 @@ import copy
 
 import torch
 import torch.nn as nn
-from mmcv.runner import OptimizerHook
-from mmcv.utils import _BatchNorm
+from imashrimp_mmcv.mmcv.runner import OptimizerHook
+from imashrimp_mmcv.mmcv.utils import _BatchNorm
 
 from ..utils.dist_utils import allreduce_grads
 from .utils import cast_tensor_type

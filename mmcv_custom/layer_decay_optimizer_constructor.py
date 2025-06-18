@@ -1,6 +1,6 @@
 import json
-from mmcv.runner import OPTIMIZER_BUILDERS, DefaultOptimizerConstructor
-from mmcv.runner import get_dist_info
+from imashrimp_mmcv.mmcv.runner import OPTIMIZER_BUILDERS, DefaultOptimizerConstructor
+from imashrimp_mmcv.mmcv.runner import get_dist_info
 
 
 def get_num_layer_for_vit(var_name, num_max_layer):

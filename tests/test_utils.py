@@ -5,13 +5,13 @@ import platform
 import time
 
 import cv2
-import mmcv
+import imashrimp_mmcv.mmcv as mmcv
 import torch
 import torchvision
-from mmcv import Config
+from imashrimp_mmcv.mmcv import Config
 
-import mmpose
-from mmpose.utils import StopWatch, collect_env, setup_multi_processes
+import imashrimp_ViTPose.mmpose as mmpose
+from imashrimp_ViTPose.mmpose.utils import StopWatch, collect_env, setup_multi_processes
 
 
 def test_collect_env():

@@ -1,27 +1,27 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import warnings
 
-import mmcv
+import imashrimp_mmcv.mmcv as mmcv
 import torch
-from mmcv.image import imwrite
-from mmcv.utils.misc import deprecated_api_warning
-from mmcv.visualization.image import imshow
+from imashrimp_mmcv.mmcv.image import imwrite
+from imashrimp_mmcv.mmcv.utils.misc import deprecated_api_warning
+from imashrimp_mmcv.mmcv.visualization.image import imshow
 
-from mmpose.core.evaluation import (aggregate_scale, aggregate_stage_flip,
+from imashrimp_ViTPose.mmpose.core.evaluation import (aggregate_scale, aggregate_stage_flip,
                                     flip_feature_maps, get_group_preds,
                                     split_ae_outputs)
-from mmpose.core.post_processing.group import HeatmapParser
-from mmpose.core.visualization import imshow_keypoints
+from imashrimp_ViTPose.mmpose.core.post_processing.group import HeatmapParser
+from imashrimp_ViTPose.mmpose.core.visualization import imshow_keypoints
 from .. import builder
 from ..builder import POSENETS
 from .base import BasePose
 
 try:
-    from mmcv.runner import auto_fp16
+    from imashrimp_mmcv.mmcv.runner import auto_fp16
 except ImportError:
-    warnings.warn('auto_fp16 from mmpose will be deprecated from v0.15.0'
+    warnings.warn('auto_fp16 from imashrimp_ViTPose.mmpose will be deprecated from v0.15.0'
                   'Please install mmcv>=1.1.4')
-    from mmpose.core import auto_fp16
+    from imashrimp_ViTPose.mmpose.core import auto_fp16
 
 
 @POSENETS.register_module()

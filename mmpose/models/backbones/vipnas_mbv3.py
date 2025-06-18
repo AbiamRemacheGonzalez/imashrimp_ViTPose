@@ -3,7 +3,7 @@ import copy
 import logging
 
 import torch.nn as nn
-from mmcv.cnn import ConvModule
+from imashrimp_mmcv.mmcv.cnn import ConvModule
 from torch.nn.modules.batchnorm import _BatchNorm
 
 from ..builder import BACKBONES

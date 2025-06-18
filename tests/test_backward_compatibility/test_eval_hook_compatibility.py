@@ -5,7 +5,7 @@ import pytest
 import torch
 from torch.utils.data import DataLoader, Dataset
 
-from mmpose.core import DistEvalHook, EvalHook
+from imashrimp_ViTPose.mmpose.core import DistEvalHook, EvalHook
 
 
 class ExampleDataset(Dataset):

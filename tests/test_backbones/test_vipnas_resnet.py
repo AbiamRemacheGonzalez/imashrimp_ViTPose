@@ -2,10 +2,10 @@
 import pytest
 import torch
 import torch.nn as nn
-from mmcv.utils.parrots_wrapper import _BatchNorm
+from imashrimp_mmcv.mmcv.utils.parrots_wrapper import _BatchNorm
 
-from mmpose.models.backbones import ViPNAS_ResNet
-from mmpose.models.backbones.vipnas_resnet import (ViPNAS_Bottleneck,
+from imashrimp_ViTPose.mmpose.models.backbones import ViPNAS_ResNet
+from imashrimp_ViTPose.mmpose.models.backbones.vipnas_resnet import (ViPNAS_Bottleneck,
                                                    ViPNAS_ResLayer,
                                                    get_expansion)
 

@@ -1,7 +1,7 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import tempfile
 
-from mmpose.datasets import DATASETS
+from imashrimp_ViTPose.mmpose.datasets import DATASETS
 
 
 def test_mesh_Mosh_dataset():

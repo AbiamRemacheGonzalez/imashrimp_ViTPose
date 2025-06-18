@@ -2,31 +2,31 @@ from pylab import *
 import json
 import copy
 import time
-from mmcv.runner import set_random_seed
-from mmcv.utils import get_git_hash
+from imashrimp_mmcv.mmcv.runner import set_random_seed
+from imashrimp_mmcv.mmcv.utils import get_git_hash
 
-from mmpose import __version__
-from mmpose.apis import init_random_seed, train_model
-from mmpose.utils import collect_env, get_root_logger
+from imashrimp_ViTPose.mmpose import __version__
+from imashrimp_ViTPose.mmpose.apis import init_random_seed, train_model
+from imashrimp_ViTPose.mmpose.utils import collect_env, get_root_logger
 import argparse
 import os
 import os.path as osp
 import warnings
 import math
 
-import mmcv
+import imashrimp_mmcv.mmcv as mmcv
 import torch
-from mmcv import Config, DictAction
-from mmcv.runner import get_dist_info, init_dist, load_checkpoint
+from imashrimp_mmcv.mmcv import Config, DictAction
+from imashrimp_mmcv.mmcv.runner import get_dist_info, init_dist, load_checkpoint
 
-from mmpose.datasets import build_dataloader, build_dataset
-from mmpose.models import build_posenet
-from mmpose.utils import setup_multi_processes
+from imashrimp_ViTPose.mmpose.datasets import build_dataloader, build_dataset
+from imashrimp_ViTPose.mmpose.models import build_posenet
+from imashrimp_ViTPose.mmpose.utils import setup_multi_processes
 
 # test
-from mmcv.cnn import fuse_conv_bn
-from mmcv.parallel import MMDataParallel, MMDistributedDataParallel
-from mmpose.apis import multi_gpu_test, single_gpu_test
+from imashrimp_mmcv.mmcv.cnn import fuse_conv_bn
+from imashrimp_mmcv.mmcv.parallel import MMDataParallel, MMDistributedDataParallel
+from imashrimp_ViTPose.mmpose.apis import multi_gpu_test, single_gpu_test
 
 # import supervise_tool as supt
 from .supervise_tool import save_supervise_loss, save_supervise_pck
@@ -34,15 +34,15 @@ from .base_tool import create_custom_file, create_dir
 from .base_tool import merge_configs
 from .test_tools import create_test_qualitative_images, create_test_quantitative_results
 from .hyperparameter_search_engine import HyperparameterSearchEngine
-from pixelconversor.conversor.searcher.utils import base as bs
-from pixelconversor.conversor.searcher.searchers import modelSearcher
+from searcher.utils import base as bs
+from searcher.searchers import modelSearcher
 
 try:
-    from mmcv.runner import wrap_fp16_model
+    from imashrimp_mmcv.mmcv.runner import wrap_fp16_model
 except ImportError:
-    warnings.warn('auto_fp16 from mmpose will be deprecated from v0.15.0'
+    warnings.warn('auto_fp16 from imashrimp_ViTPose.mmpose will be deprecated from v0.15.0'
                   'Please install mmcv>=1.1.4')
-    from mmpose.core import wrap_fp16_model
+    from imashrimp_ViTPose.mmpose.core import wrap_fp16_model
 
 warnings.filterwarnings("ignore", category=UserWarning)
 

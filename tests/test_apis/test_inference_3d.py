@@ -2,16 +2,16 @@
 import os.path as osp
 import tempfile
 
-import mmcv
+import imashrimp_mmcv.mmcv as mmcv
 import numpy as np
 import pytest
 import torch
 
-from mmpose.apis import (extract_pose_sequence, inference_interhand_3d_model,
+from imashrimp_ViTPose.mmpose.apis import (extract_pose_sequence, inference_interhand_3d_model,
                          inference_mesh_model, inference_pose_lifter_model,
                          init_pose_model, vis_3d_mesh_result,
                          vis_3d_pose_result)
-from mmpose.datasets.dataset_info import DatasetInfo
+from imashrimp_ViTPose.mmpose.datasets.dataset_info import DatasetInfo
 from tests.utils.mesh_utils import generate_smpl_weight_file
 
 

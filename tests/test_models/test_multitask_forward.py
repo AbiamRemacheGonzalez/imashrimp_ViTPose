@@ -2,7 +2,7 @@
 import numpy as np
 import torch
 
-from mmpose.models.detectors import MultiTask
+from imashrimp_ViTPose.mmpose.models.detectors import MultiTask
 
 
 def test_multitask_forward():

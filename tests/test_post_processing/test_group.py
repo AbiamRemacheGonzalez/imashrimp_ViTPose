@@ -1,7 +1,7 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import torch
 
-from mmpose.core.post_processing.group import HeatmapParser
+from imashrimp_ViTPose.mmpose.core.post_processing.group import HeatmapParser
 
 
 def test_group():

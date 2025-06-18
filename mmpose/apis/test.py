@@ -5,10 +5,10 @@ import shutil
 import tempfile
 import time
 
-import mmcv
+import imashrimp_mmcv.mmcv as mmcv
 import torch
 import torch.distributed as dist
-from mmcv.runner import get_dist_info
+from imashrimp_mmcv.mmcv.runner import get_dist_info
 
 
 def single_gpu_test(model, data_loader):

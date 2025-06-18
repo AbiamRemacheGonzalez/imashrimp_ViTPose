@@ -7,7 +7,7 @@ from collections import OrderedDict, defaultdict
 
 import json_tricks as json
 import numpy as np
-from mmcv import Config, deprecated_api_warning
+from imashrimp_mmcv.mmcv import Config, deprecated_api_warning
 from xtcocotools.cocoeval import COCOeval
 import matplotlib.pyplot as plt
 

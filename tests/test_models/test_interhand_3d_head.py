@@ -2,7 +2,7 @@
 import numpy as np
 import torch
 
-from mmpose.models import Interhand3DHead
+from imashrimp_ViTPose.mmpose.models import Interhand3DHead
 
 
 def test_interhand_3d_head():

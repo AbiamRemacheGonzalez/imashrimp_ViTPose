@@ -2,27 +2,27 @@
 import copy
 import warnings
 
-import mmcv
+import imashrimp_mmcv.mmcv as mmcv
 import numpy as np
 import torch
 import torch.distributed as dist
-from mmcv.parallel import MMDataParallel, MMDistributedDataParallel
-from mmcv.runner import (DistSamplerSeedHook, EpochBasedRunnerForSearch, OptimizerHook,
+from imashrimp_mmcv.mmcv.parallel import MMDataParallel, MMDistributedDataParallel
+from imashrimp_mmcv.mmcv.runner import (DistSamplerSeedHook, EpochBasedRunnerForSearch, OptimizerHook,
                          get_dist_info)
-from mmcv.utils import digit_version
+from imashrimp_mmcv.mmcv.utils import digit_version
 
-from mmpose.core import DistEvalHook, EvalHook, build_optimizers
-from mmpose.core.distributed_wrapper import DistributedDataParallelWrapper
-from mmpose.datasets import build_dataloader, build_dataset
-from mmpose.utils import get_root_logger
+from imashrimp_ViTPose.mmpose.core import DistEvalHook, EvalHook, build_optimizers
+from imashrimp_ViTPose.mmpose.core.distributed_wrapper import DistributedDataParallelWrapper
+from imashrimp_ViTPose.mmpose.datasets import build_dataloader, build_dataset
+from imashrimp_ViTPose.mmpose.utils import get_root_logger
 
 try:
-    from mmcv.runner import Fp16OptimizerHook
+    from imashrimp_mmcv.mmcv.runner import Fp16OptimizerHook
 except ImportError:
     warnings.warn(
-        'Fp16OptimizerHook from mmpose will be deprecated from '
+        'Fp16OptimizerHook from imashrimp_ViTPose.mmpose will be deprecated from '
         'v0.15.0. Please install mmcv>=1.1.4', DeprecationWarning)
-    from mmpose.core import Fp16OptimizerHook
+    from imashrimp_ViTPose.mmpose.core import Fp16OptimizerHook
 
 
 def init_random_seed_for_search(seed=None, device='cuda'):

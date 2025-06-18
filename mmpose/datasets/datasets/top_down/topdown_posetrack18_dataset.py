@@ -7,7 +7,7 @@ from collections import OrderedDict, defaultdict
 
 import json_tricks as json
 import numpy as np
-from mmcv import Config, deprecated_api_warning
+from imashrimp_mmcv.mmcv import Config, deprecated_api_warning
 
 from ....core.post_processing import oks_nms, soft_oks_nms
 from ...builder import DATASETS

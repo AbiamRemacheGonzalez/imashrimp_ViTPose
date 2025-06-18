@@ -2,7 +2,7 @@
 from os.path import dirname, exists, join, relpath
 
 import torch
-from mmcv.runner import build_optimizer
+from imashrimp_mmcv.mmcv.runner import build_optimizer
 
 
 def _get_config_directory():
@@ -12,7 +12,7 @@ def _get_config_directory():
         repo_dpath = dirname(dirname(__file__))
     except NameError:
         # For IPython development when this __file__ is not defined
-        import mmpose
+        import imashrimp_ViTPose.mmpose as mmpose
         repo_dpath = dirname(dirname(mmpose.__file__))
     config_dpath = join(repo_dpath, 'configs')
     if not exists(config_dpath):
@@ -23,9 +23,9 @@ def _get_config_directory():
 def test_config_build_detector():
     """Test that all detection models defined in the configs can be
     initialized."""
-    from mmcv import Config
+    from imashrimp_mmcv.mmcv import Config
 
-    from mmpose.models import build_posenet
+    from imashrimp_ViTPose.mmpose.models import build_posenet
 
     config_dpath = _get_config_directory()
     print(f'Found config_dpath = {config_dpath}')

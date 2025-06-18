@@ -3,7 +3,7 @@ import copy
 
 import torch.nn as nn
 import torch.utils.checkpoint as cp
-from mmcv.cnn import ConvModule
+from imashrimp_mmcv.mmcv.cnn import ConvModule
 
 from .se_layer import SELayer
 

@@ -2,9 +2,8 @@
 import cv2
 import numpy as np
 
-from mmpose.core.post_processing import (get_affine_transform, get_warp_matrix,
-                                         warp_affine_joints)
-from mmpose.datasets.builder import PIPELINES
+from imashrimp_ViTPose.mmpose.core.post_processing import (get_affine_transform, get_warp_matrix, warp_affine_joints)
+from imashrimp_ViTPose.mmpose.datasets.builder import PIPELINES
 from .shared_transform import Compose
 
 

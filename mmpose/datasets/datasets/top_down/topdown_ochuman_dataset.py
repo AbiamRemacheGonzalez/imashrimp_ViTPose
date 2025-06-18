@@ -1,7 +1,7 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import warnings
 
-from mmcv import Config
+from imashrimp_mmcv.mmcv import Config
 
 from ...builder import DATASETS
 from .topdown_coco_dataset import TopDownCocoDataset

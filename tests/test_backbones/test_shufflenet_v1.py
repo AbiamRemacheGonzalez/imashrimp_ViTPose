@@ -4,8 +4,8 @@ import torch
 from torch.nn.modules import GroupNorm
 from torch.nn.modules.batchnorm import _BatchNorm
 
-from mmpose.models.backbones import ShuffleNetV1
-from mmpose.models.backbones.shufflenet_v1 import ShuffleUnit
+from imashrimp_ViTPose.mmpose.models.backbones import ShuffleNetV1
+from imashrimp_ViTPose.mmpose.models.backbones.shufflenet_v1 import ShuffleUnit
 
 
 def is_block(modules):

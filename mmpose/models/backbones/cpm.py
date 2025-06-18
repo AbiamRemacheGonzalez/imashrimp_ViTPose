@@ -3,10 +3,10 @@ import copy
 
 import torch
 import torch.nn as nn
-from mmcv.cnn import ConvModule, constant_init, normal_init
+from imashrimp_mmcv.mmcv.cnn import ConvModule, constant_init, normal_init
 from torch.nn.modules.batchnorm import _BatchNorm
 
-from mmpose.utils import get_root_logger
+from imashrimp_ViTPose.mmpose.utils import get_root_logger
 from ..builder import BACKBONES
 from .base_backbone import BaseBackbone
 from .utils import load_checkpoint
@@ -67,7 +67,7 @@ class CPM(BaseBackbone):
         norm_cfg (dict): Dictionary to construct and config norm layer.
 
     Example:
-        >>> from mmpose.models import CPM
+        >>> from imashrimp_ViTPose.mmpose.models import CPM
         >>> import torch
         >>> self = CPM(3, 17)
         >>> self.eval()

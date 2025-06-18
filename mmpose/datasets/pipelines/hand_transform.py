@@ -1,7 +1,7 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import numpy as np
 
-from mmpose.datasets.builder import PIPELINES
+from imashrimp_ViTPose.mmpose.datasets.builder import PIPELINES
 from .top_down_transform import TopDownRandomFlip
 
 

@@ -6,9 +6,9 @@ from tempfile import TemporaryDirectory
 import torch
 from torch.optim import Optimizer
 
-import mmcv
-from mmcv.parallel import is_module_wrapper
-from mmcv.runner.checkpoint import weights_to_cpu, get_state_dict
+import imashrimp_mmcv.mmcv as mmcv
+from imashrimp_mmcv.mmcv.parallel import is_module_wrapper
+from imashrimp_mmcv.mmcv.runner.checkpoint import weights_to_cpu, get_state_dict
 
 try:
     import apex

@@ -2,7 +2,7 @@
 import pytest
 import torch
 
-from mmpose.models import HourglassAENet, HourglassNet
+from imashrimp_ViTPose.mmpose.models import HourglassAENet, HourglassNet
 
 
 def test_hourglass_backbone():

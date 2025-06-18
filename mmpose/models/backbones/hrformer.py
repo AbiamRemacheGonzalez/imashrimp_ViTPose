@@ -5,10 +5,10 @@ import math
 import torch
 import torch.nn as nn
 # from timm.models.layers import to_2tuple, trunc_normal_
-from mmcv.cnn import (build_activation_layer, build_conv_layer,
+from imashrimp_mmcv.mmcv.cnn import (build_activation_layer, build_conv_layer,
                       build_norm_layer, trunc_normal_init)
-from mmcv.cnn.bricks.transformer import build_dropout
-from mmcv.runner import BaseModule
+from imashrimp_mmcv.mmcv.cnn.bricks.transformer import build_dropout
+from imashrimp_mmcv.mmcv.runner import BaseModule
 from torch.nn.functional import pad
 
 from ..builder import BACKBONES
@@ -610,7 +610,7 @@ class HRFormer(HRNet):
         frozen_stages (int): Stages to be frozen (stop grad and set eval mode).
             -1 means not freezing any parameters. Default: -1.
     Example:
-        >>> from mmpose.models import HRFormer
+        >>> from imashrimp_ViTPose.mmpose.models import HRFormer
         >>> import torch
         >>> extra = dict(
         >>>     stage1=dict(

@@ -3,10 +3,10 @@ import copy
 
 import numpy as np
 
-from mmpose.apis import (inference_bottom_up_pose_model,
+from imashrimp_ViTPose.mmpose.apis import (inference_bottom_up_pose_model,
                          inference_top_down_pose_model, init_pose_model,
                          process_mmdet_results, vis_pose_result)
-from mmpose.datasets import DatasetInfo
+from imashrimp_ViTPose.mmpose.datasets import DatasetInfo
 
 
 def test_top_down_demo():

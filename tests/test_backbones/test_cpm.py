@@ -2,8 +2,8 @@
 import pytest
 import torch
 
-from mmpose.models import CPM
-from mmpose.models.backbones.cpm import CpmBlock
+from imashrimp_ViTPose.mmpose.models import CPM
+from imashrimp_ViTPose.mmpose.models.backbones.cpm import CpmBlock
 
 
 def test_cpm_block():

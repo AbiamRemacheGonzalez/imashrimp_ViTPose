@@ -4,8 +4,8 @@ import torch
 from torch.nn.modules import GroupNorm
 from torch.nn.modules.batchnorm import _BatchNorm
 
-from mmpose.models.backbones import MobileNetV2
-from mmpose.models.backbones.mobilenet_v2 import InvertedResidual
+from imashrimp_ViTPose.mmpose.models.backbones import MobileNetV2
+from imashrimp_ViTPose.mmpose.models.backbones.mobilenet_v2 import InvertedResidual
 
 
 def is_block(modules):

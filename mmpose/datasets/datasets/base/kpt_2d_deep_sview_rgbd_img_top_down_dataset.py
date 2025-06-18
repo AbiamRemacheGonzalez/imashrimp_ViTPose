@@ -7,12 +7,12 @@ import numpy as np
 from torch.utils.data import Dataset
 from xtcocotools.coco import COCO
 
-from mmpose.core.evaluation.top_down_eval import (keypoint_auc, keypoint_epe,
+from imashrimp_ViTPose.mmpose.core.evaluation.top_down_eval import (keypoint_auc, keypoint_epe,
                                                   keypoint_nme,
                                                   keypoint_pck_accuracy,
                                                   _calc_distances)
-from mmpose.datasets import DatasetInfo
-from mmpose.datasets.pipelines import Compose
+from imashrimp_ViTPose.mmpose.datasets import DatasetInfo
+from imashrimp_ViTPose.mmpose.datasets.pipelines import Compose
 
 
 class Kpt2dDeepSviewRgbImgTopDownDataset(Dataset, metaclass=ABCMeta):

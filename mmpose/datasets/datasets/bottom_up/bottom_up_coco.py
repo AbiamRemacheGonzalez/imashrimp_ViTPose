@@ -6,12 +6,12 @@ from collections import OrderedDict, defaultdict
 
 import json_tricks as json
 import numpy as np
-from mmcv import Config, deprecated_api_warning
+from imashrimp_mmcv.mmcv import Config, deprecated_api_warning
 from xtcocotools.cocoeval import COCOeval
 
-from mmpose.core.post_processing import oks_nms, soft_oks_nms
-from mmpose.datasets.builder import DATASETS
-from mmpose.datasets.datasets.base import Kpt2dSviewRgbImgBottomUpDataset
+from imashrimp_ViTPose.mmpose.core.post_processing import oks_nms, soft_oks_nms
+from imashrimp_ViTPose.mmpose.datasets.builder import DATASETS
+from imashrimp_ViTPose.mmpose.datasets.datasets.base import Kpt2dSviewRgbImgBottomUpDataset
 
 
 @DATASETS.register_module()

@@ -1,7 +1,7 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import pathlib
 
-import mmcv
+import imashrimp_mmcv.mmcv as mmcv
 import numpy as np
 import os
 import torch

@@ -3,7 +3,7 @@ import copy
 
 import numpy as np
 
-from mmpose.datasets.pipelines import Compose
+from imashrimp_ViTPose.mmpose.datasets.pipelines import Compose
 
 
 def _check_flip(origin_imgs, result_imgs):

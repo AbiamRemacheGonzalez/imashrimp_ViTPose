@@ -1,10 +1,10 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import tempfile
 
-from mmcv import Config
+from imashrimp_mmcv.mmcv import Config
 
-from mmpose.datasets import DATASETS, build_dataloader
-from mmpose.models import builder
+from imashrimp_ViTPose.mmpose.datasets import DATASETS, build_dataloader
+from imashrimp_ViTPose.mmpose.models import builder
 
 
 def test_voxelpose_forward():

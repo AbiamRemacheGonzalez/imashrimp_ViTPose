@@ -4,11 +4,11 @@ from collections import OrderedDict
 
 import torch.nn as nn
 import torch.nn.functional as F
-from mmcv.cnn import (ConvModule, MaxPool2d, constant_init, kaiming_init,
+from imashrimp_mmcv.mmcv.cnn import (ConvModule, MaxPool2d, constant_init, kaiming_init,
                       normal_init)
-from mmcv.runner.checkpoint import load_state_dict
+from imashrimp_mmcv.mmcv.runner.checkpoint import load_state_dict
 
-from mmpose.utils import get_root_logger
+from imashrimp_ViTPose.mmpose.utils import get_root_logger
 from ..builder import BACKBONES
 from .base_backbone import BaseBackbone
 from .resnet import Bottleneck as _Bottleneck
@@ -402,7 +402,7 @@ class MSPN(BaseBackbone):
             Default: 64.
 
     Example:
-        >>> from mmpose.models import MSPN
+        >>> from imashrimp_ViTPose.mmpose.models import MSPN
         >>> import torch
         >>> self = MSPN(num_stages=2,num_units=2,num_blocks=[2,2])
         >>> self.eval()

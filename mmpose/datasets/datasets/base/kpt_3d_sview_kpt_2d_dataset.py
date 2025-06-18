@@ -5,8 +5,8 @@ from abc import ABCMeta, abstractmethod
 import numpy as np
 from torch.utils.data import Dataset
 
-from mmpose.datasets import DatasetInfo
-from mmpose.datasets.pipelines import Compose
+from imashrimp_ViTPose.mmpose.datasets import DatasetInfo
+from imashrimp_ViTPose.mmpose.datasets.pipelines import Compose
 
 
 class Kpt3dSviewKpt2dDataset(Dataset, metaclass=ABCMeta):

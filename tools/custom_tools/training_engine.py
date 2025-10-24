@@ -63,15 +63,16 @@ class TrainingEngine:
         # if self.cfg.complete_analysis:
         #     self.test(complete=True)
 
-    def external_test(self, source_dir, res_dir, view, nkp, old=False):
+    def external_test(self, source_dir, res_dir, view, nkp=None, old=False):
         self.prepare_environment(old=old)
         self.preapare_conversion_model()
         listdir = os.listdir(self.args.work_dir)
         for dir in listdir:
             if "winner" in dir:
                 self.args.work_dir = os.path.join(self.args.work_dir, dir)
-        data_root = source_dir + f"/{view}_{nkp}"
-        res_dir = res_dir + f"/{view}_{nkp}"
+
+        data_root = source_dir + f"/{view}" if nkp is None else source_dir + f"/{view}_{nkp}"
+        res_dir = res_dir + f"/{view}" if nkp is None else res_dir + f"/{view}_{nkp}"
         self.cfg.data_root = data_root
         self.cfg.data.test.ann_file = f'{data_root}/annotations/test_keypoints.json'
         self.cfg.data.test.img_prefix = f'{data_root}/images/test/'
@@ -93,20 +94,25 @@ class TrainingEngine:
                 sub_dir = res_dir + f"/{splits[3]}_{splits[2]}/{name}"
             else:
                 sub_dir = res_dir + "/" + splits[3] + "/" + splits[2] + "/" + name
-            self.args.work_dir = sub_dir
-            self.cfg.work_dir = sub_dir
-            create_dir(sub_dir)
-            create_dir(os.path.join(sub_dir, "hyperparameter_search"))
+        if len(splits) == 4:
+            # 2n proposal
+            name = "experiment_" + splits[3]
+            sub_dir = res_dir + "/" + splits[3] + "/" + name
+        self.args.work_dir = sub_dir
+        self.cfg.work_dir = sub_dir
+        create_dir(sub_dir)
+        create_dir(os.path.join(sub_dir, "hyperparameter_search"))
         print("IMASHRIMP: Preparing environment--------------------------------")
         print("\tWork dir: ", self.cfg.work_dir)
 
     def hyperparameter_search(self):
         print("IMASHRIMP: Searching hyperparameters-----------------------------")
         bch, lr, total_epochs = HyperparameterSearchEngine(self.args, self.cfg)()
+
         self.cfg.optimizer['lr'] = lr
-        self.cfg.data['samples_per_gpu'] = bch
-        self.cfg.data['val_dataloader']['samples_per_gpu'] = bch
-        self.cfg.data['test_dataloader']['samples_per_gpu'] = bch
+        self.cfg.data['samples_per_gpu'] = int(bch)
+        self.cfg.data['val_dataloader']['samples_per_gpu'] = int(bch)
+        self.cfg.data['test_dataloader']['samples_per_gpu'] = int(bch)
         self.cfg.total_epochs = total_epochs
         in_1 = math.ceil(((170 / 2.1) * self.cfg.total_epochs) / 100)
         in_2 = math.ceil(((200 / 2.1) * self.cfg.total_epochs) / 100)
@@ -119,15 +125,6 @@ class TrainingEngine:
         if os.path.exists(self.args.work_dir):
             resume_from_dir = os.path.join(source_dir,
                                            "winner_" + str(bch) + "_" + str(lr) + "_" + str(self.cfg.total_epochs))
-            dir_list = os.listdir(resume_from_dir)
-            for file in dir_list:
-                if "best_PCK" in file:
-                    resume_from_file = os.path.join(resume_from_dir, file)
-                    break
-
-        if not os.path.exists(self.args.work_dir) or resume_from_file == "":
-            resume_from_dir = source_dir + "/hyperparameter_search/exp_" + str(bch) + "_" + str(lr) + "_" + str(
-                self.cfg.total_epochs) + "_" + str(5)
             dir_list = os.listdir(resume_from_dir)
             for file in dir_list:
                 if "best_PCK" in file:
@@ -434,7 +431,8 @@ class TrainingEngine:
                     mmcv.dump(outputs, self.args.out)
                 # tst.get_measure_info(self.cfg.ann_file_measure, outputs)
                 results = dataset.evaluate(outputs, self.cfg.work_dir, err_dis=True, **eval_config)
-                pd_mae, gt_mae = create_test_quantitative_results(outputs, dataset, checkpoint_name, self.cfg, external_test=external)
+                pd_mae, gt_mae = create_test_quantitative_results(outputs, dataset, checkpoint_name, self.cfg,
+                                                                  external_test=external)
                 if self.args.predict_images and not complete:
                     create_test_qualitative_images(outputs, dataset, checkpoint_name, self.cfg)
                 # tst.save_error_per_point_histogram(results['PCKdis'], os.path.join(self.args.work_dir, "1_ERR_DIS_NEW_" + checkpoint_name + ".png"), metric="px")

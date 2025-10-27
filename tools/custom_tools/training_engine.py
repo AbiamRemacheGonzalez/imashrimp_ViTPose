@@ -419,7 +419,7 @@ class TrainingEngine:
                 fin = time.time()
 
                 tiempo_ejecucion = fin - inicio
-                # print(f"Tiempo de ejecución: {tiempo_ejecucion} segundos")
+                print(f"Tiempo de ejecución: {tiempo_ejecucion} segundos")
 
             rank, _ = get_dist_info()
             eval_config = self.cfg.get('evaluation', {})
@@ -429,13 +429,10 @@ class TrainingEngine:
                 if self.args.out:
                     print(f'\nwriting results to {self.args.out}')
                     mmcv.dump(outputs, self.args.out)
-                # tst.get_measure_info(self.cfg.ann_file_measure, outputs)
                 results = dataset.evaluate(outputs, self.cfg.work_dir, err_dis=True, **eval_config)
-                pd_mae, gt_mae = create_test_quantitative_results(outputs, dataset, checkpoint_name, self.cfg,
-                                                                  external_test=external)
-                if self.args.predict_images and not complete:
-                    create_test_qualitative_images(outputs, dataset, checkpoint_name, self.cfg)
-                # tst.save_error_per_point_histogram(results['PCKdis'], os.path.join(self.args.work_dir, "1_ERR_DIS_NEW_" + checkpoint_name + ".png"), metric="px")
+                pd_mae, gt_mae = create_test_quantitative_results(outputs, dataset, checkpoint_name, self.cfg, external_test=external)
+                #propuesta n2 if self.args.predict_images and not complete:
+                #     create_test_qualitative_images(outputs, dataset, checkpoint_name, self.cfg)
                 del results['PCKdis']
                 results['mae_pd_rm'] = pd_mae
                 results['mae_gt_rm'] = gt_mae

@@ -22,6 +22,7 @@ from imashrimp_mmcv.mmcv.runner import get_dist_info, init_dist
 from imashrimp_ViTPose.mmpose.datasets import build_dataset
 from imashrimp_ViTPose.mmpose.models import build_posenet
 from imashrimp_ViTPose.mmpose.utils import setup_multi_processes
+from decimal import Decimal
 
 # test
 from .base_tool import create_custom_file
@@ -46,10 +47,9 @@ class HyperparameterSearchEngine:
     def __init__(self, args, cfg):
         self.args = copy.deepcopy(args)
         self.cfg = Config(copy.deepcopy(cfg))
-        self.iters = 22890  #77280#22890 Para redes mas grandes. De momento este será el valor.
-        self.iters_for_bigs = 72280#77280
         datasets = [build_dataset(self.cfg.data.train)]
         self.train_len = len(datasets[0])
+        self.total_epochs_win = 210
 
     def train_n_ep(self, bch, lr, nep):
         inicio = time.time()
@@ -120,8 +120,6 @@ class HyperparameterSearchEngine:
         env_info = '\n'.join([(f'{k}: {v}') for k, v in env_info_dict.items()])
         meta['env_info'] = env_info
 
-        # logger.info(f'Config:\n{cfg.pretty_text}')
-
         # set random seeds
         seed = init_random_seed_for_search(args.seed)
         set_random_seed(seed, deterministic=args.deterministic)
@@ -130,22 +128,12 @@ class HyperparameterSearchEngine:
 
         model = build_posenet(cfg.model)
         datasets = [build_dataset(cfg.data.train)]
-        # ----------
-        cfg.total_epochs = math.ceil((self.iters * bch) / len(datasets[0]))
-        if cfg.total_epochs < 210:
-            self.iters = self.iters_for_bigs
-            cfg.total_epochs = math.ceil((self.iters * bch) / len(datasets[0]))
-        in_1 = math.ceil(((170/2.1)*cfg.total_epochs)/100)
-        in_2 = math.ceil(((200/2.1)*cfg.total_epochs)/100)
-        cfg.lr_config['step'] = [in_1, in_2]
-        iters_per_exp = math.ceil(len(datasets[0]) / self.min_bch) * nep
-        exp_epochs = math.ceil(iters_per_exp / math.ceil((len(datasets[0]) / bch)))
 
+        cfg.total_epochs = 210
+        cfg.lr_config['step'] = [170, 200]
         args.work_dir = os.path.join(args.work_dir, "exp_" + str(bch) + "_" + str(lr) + "_" + str(cfg.total_epochs) + "_" + str(nep))
-
         if args.work_dir is not None:
             cfg.work_dir = args.work_dir
-        # -----------
 
         if len(cfg.workflow) == 2:
             val_dataset = copy.deepcopy(cfg.data.val)
@@ -167,25 +155,13 @@ class HyperparameterSearchEngine:
             validate=False,
             timestamp=timestamp,
             meta=meta,
-            exp_epochs=exp_epochs)
-
-        if args.work_dir:
-            list_f = os.listdir(args.work_dir)
-            for f in list_f:
-                if "supervise_info" in f:
-                    supervise_info_path = os.path.join(args.work_dir, f)
-        else:
-            print("supervise_info info not exist")
-            pass
-        with open(supervise_info_path, 'r') as f:
-            datos = json.load(f)
+            exp_epochs=nep)
 
         fin = time.time()
         tiempo_transcurrido = fin - inicio
         horas = int(tiempo_transcurrido // 3600)
         minutos = int((tiempo_transcurrido % 3600) // 60)
         create_custom_file(os.path.join(cfg.work_dir, "4_Train_Time_" + str(horas) + "h_" + str(minutos) + "m.txt"), "")
-        tiempo = str(horas) + "h_" + str(minutos) + "m"
         file_name = os.path.join(self.args.work_dir, 'learning_rates.json')
         with open(file_name, 'w') as f:
             json.dump(train_lrs, f)
@@ -195,11 +171,7 @@ class HyperparameterSearchEngine:
         for exp in exp_list:
             split = exp.split("_")
             if int(split[1]) == bch and float(split[2]) == lr and int(split[4]) == nep:
-                total_epochs = math.ceil((self.iters * bch) / self.train_len)
-                if total_epochs < 210:
-                    self.iters = self.iters_for_bigs
-                    total_epochs = math.ceil((self.iters * bch) / self.train_len)
-                dir = os.path.join(self.source_dir, "exp_" + str(bch) + "_" + str(lr) + "_" + str(total_epochs) + "_" + str(nep))
+                dir = os.path.join(self.source_dir, exp)
                 if os.path.exists(dir):
                     list_dir = os.listdir(dir)
                     for file in list_dir:
@@ -208,19 +180,19 @@ class HyperparameterSearchEngine:
         return False
 
     def get_exp_info(self, bch, lr, nep):
-        total_epochs = math.ceil((self.iters * bch) / self.train_len)
-        if total_epochs < 210:
-            self.iters = self.iters_for_bigs
-            total_epochs = math.ceil((self.iters * bch) / self.train_len)
-        work_dir = os.path.join(self.source_dir, "exp_" + str(bch) + "_" + str(lr) + "_" + str(total_epochs) + "_" + str(nep))
-        if work_dir:
-            list_f = os.listdir(work_dir)
-            for f in list_f:
-                if "supervise_info" in f:
-                    supervise_info_path = os.path.join(work_dir, f)
-        else:
-            print("supervise_info info not exist")
-            pass
+        exp_list = os.listdir(self.source_dir)
+        supervise_info_path = None
+        for exp in exp_list:
+            split = exp.split("_")
+            if int(split[1]) == bch and float(split[2]) == lr and int(split[4]) == nep:
+                dir = os.path.join(self.source_dir, exp)
+                if os.path.exists(dir):
+                    list_dir = os.listdir(dir)
+                    for f in list_dir:
+                        if "supervise_info" in f:
+                            supervise_info_path = os.path.join(dir, f)
+                            break
+                break
         with open(supervise_info_path, 'r') as f:
             datos = json.load(f)
         return datos["e_loss"], datos["e_pck"]
@@ -250,7 +222,7 @@ class HyperparameterSearchEngine:
 
         self.source_dir = self.args.work_dir + "/hyperparameter_search"
         self.args.work_dir = self.args.work_dir + "/hyperparameter_search"
-        lrs = [0.0001, 0.0002, 0.0003, 0.0004, 0.0005, 0.0006, 0.0007, 0.0008, 0.0009, 0.001, 0.002, 0.003, 0.004, 0.005, 0.006, 0.007, 0.008, 0.009, 0.01]
+        lrs = [0.00001, 0.00003, 0.00005, 0.00007, 0.0001, 0.0003, 0.0005, 0.0007, 0.001, 0.003, 0.005, 0.007, 0.01] # Para redes mas grandes
         bchs = [16]#[8, 16] # 20 23 4 no parecen una buena opción
         self.min_bch = 8
         res_1ep = []
@@ -267,45 +239,41 @@ class HyperparameterSearchEngine:
                 e_loss, e_pck = self.get_exp_info(bch, lr, first_batch)
                 idx = e_loss.index(min(e_loss))
                 res_1ep.append({
-                    "config": {"bch": bch, "lr": lr},
+                    "bch": bch,
+                    "lr": lr,
                     "e_loss": min(e_loss),
                     "e_pck": e_pck[idx]
                 })
+
         df_res_1ep = pd.DataFrame(res_1ep)
-        sel = math.ceil(len(res_1ep)/4)
-        top_20_loss = df_res_1ep.nsmallest(sel, 'e_loss')
-        win_configs = top_20_loss['config'].to_list()
-        res_5ep = []
-        second_batch = 5
-        for config in win_configs:
-            bch = config['bch']
-            lr = config['lr']
-            if not self.already_exists(bch, lr, second_batch):
-                self.train_n_ep(bch, lr, second_batch)
-                # self.delete_pth_files(self.args.work_dir)
-                self.args = copy.deepcopy(copy_args)
-                self.args.work_dir = self.args.work_dir + "/hyperparameter_search"
-                self.cfg = Config(copy.deepcopy(copy_cfg))
+        top_n = df_res_1ep.sort_values(['e_pck', 'e_loss'], ascending=[False, True]).head(4)
+        selected_lrs = [Decimal(str(x)) / Decimal("10") for x in top_n['lr'].to_list()]
+        selected_lrs = [float(x) for x in selected_lrs]
+        while True:
+            df_res_1ep = pd.DataFrame(res_1ep)
+            all_lrs = df_res_1ep['lr'].to_list()
+            not_experimented_lrs = list(set(selected_lrs) - set(all_lrs))
+            if len(not_experimented_lrs) == 0:
+                break
+            for bch in bchs:
+                for lr in not_experimented_lrs:
+                    if not self.already_exists(bch, lr, first_batch):
+                        self.train_n_ep(bch, lr, first_batch)
+                        self.delete_pth_files(self.args.work_dir)
+                        self.args = copy.deepcopy(copy_args)
+                        self.args.work_dir = self.args.work_dir + "/hyperparameter_search"
+                        self.cfg = Config(copy.deepcopy(copy_cfg))
+                    e_loss, e_pck = self.get_exp_info(bch, lr, first_batch)
+                    idx = e_loss.index(min(e_loss))
+                    res_1ep.append({
+                        "bch": bch,
+                        "lr": lr,
+                        "e_loss": min(e_loss),
+                        "e_pck": e_pck[idx]
+                    })
 
-            e_loss, e_pck = self.get_exp_info(bch, lr, second_batch)
-            idx = e_loss.index(min(e_loss))
-            res_5ep.append({
-                "config": {"bch": bch, "lr": lr},
-                "e_loss": min(e_loss),
-                "e_pck": e_pck[idx]
-            })
-        df_res_5ep = pd.DataFrame(res_5ep)
-        top_1_loss = df_res_5ep.nsmallest(1, 'e_loss')
-        win_config = top_1_loss['config'].to_list()
-
-        bch_win = win_config[0]['bch']
-        lr_win = win_config[0]['lr']
-        total_epochs_win = math.ceil((self.iters * win_config[0]['bch']) / self.train_len)
-
-        self.args = copy.deepcopy(copy_args)
-        self.args.work_dir = self.args.work_dir + "/hyperparameter_search"
-        self.cfg = Config(copy.deepcopy(copy_cfg))
-
-        win_dir = os.path.join(self.args.work_dir, "exp_" + str(bch_win) + "_" + str(lr_win) + "_" + str(total_epochs_win) + "_" + str(5))
-        self.delete_pth_files(self.args.work_dir, carpeta_excepcion=win_dir)
-        return bch_win, lr_win, total_epochs_win
+        selected_exps = df_res_1ep[df_res_1ep['lr'].isin(selected_lrs)]
+        top_1 = selected_exps.sort_values(['e_pck', 'e_loss'], ascending=[False, True]).head(1)
+        lr_win = top_1['lr'].values[0]
+        bch_win = top_1['bch'].values[0]
+        return bch_win, lr_win, self.total_epochs_win

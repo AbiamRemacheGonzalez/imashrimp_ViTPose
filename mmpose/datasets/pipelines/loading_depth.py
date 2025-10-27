@@ -41,14 +41,21 @@ class LoadDepthImageFromFile:
         self.file_client = None
 
     def _read_image(self, path):
-        img_bytes = self.file_client.get(path)
-        img = mmcv.imfrombytes(
-            img_bytes, flag=self.color_type, channel_order=self.channel_order)
-        if img is None:
-            raise ValueError(f'Fail to read {path}')
-        if self.to_float32:
-            img = img.astype(np.float32)
-        return img
+        try:
+            i_path = self._read_line(path)
+            if os.path.exists(i_path):
+                path = i_path
+            img_bytes = self.file_client.get(path)
+            img = mmcv.imfrombytes(
+                img_bytes, flag=self.color_type, channel_order=self.channel_order)
+            if img is None:
+                raise ValueError(f'Fail to read {path}')
+            if self.to_float32:
+                img = img.astype(np.float32)
+            return img
+        except IOError as e:
+            raise ValueError(f'Fail to read {path}: {e}')
+            return None
 
     @staticmethod
     def _read_line(path):

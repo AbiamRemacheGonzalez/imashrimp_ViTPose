@@ -282,8 +282,7 @@ def get_bbox_name(image_name, ros_dict, view_dict):
     return f"{view_text}, {ros_text}"
 
 
-def create_test_quantitative_results(outputs, dataset, checkpoint_name, cfg, latex_tables=False, only_preds=False,
-                                     external_test=False):
+def create_test_quantitative_results(outputs, dataset, checkpoint_name, cfg, only_preds=False, external_test=False):
     args_json_file = dataset.ann_file
     args_out_img_root = cfg.work_dir + "/_test_qualitative_" + checkpoint_name
     assert (args_out_img_root != '')
@@ -299,6 +298,7 @@ def create_test_quantitative_results(outputs, dataset, checkpoint_name, cfg, lat
     raw_info_pd = np.zeros((len(img_keys), num_kp, 2))
     gt_dis_pix = np.zeros((len(img_keys), len(skeleton)))
     pd_dis_pix = np.zeros((len(img_keys), len(skeleton)))
+    dis_availability = np.ones((len(img_keys), len(skeleton)))
     img_codes = []
     img_apa = []
     img_apv = []
@@ -307,38 +307,33 @@ def create_test_quantitative_results(outputs, dataset, checkpoint_name, cfg, lat
     for batch_item in outputs:
         for idx in range(len(batch_item['image_paths'])):
             image_name = os.path.basename(batch_item['image_paths'][idx])
-            # if image_name == 'CI149_SP_0_1012N.png':
-            #     print("Debug")
             _, apv, apa, cod = image_name.split("_")
+
             img_apa.append(apa)
             img_apv.append(apv)
             img_codes.append(cod[:-4])
-            # if cod == '515N.png':
-            #     print("Debug")
+
             image_id = next((d for d in gt_imgs_info if d["file_name"] == image_name), None)['id']
             gt_keypoint = get_gt_keypoints(coco, image_id)
             pd_keypoint = batch_item['preds'][idx, :, :2]
 
             # --Ground Truth--
-            cgt_dis_pix = bs.get_keypoint_distances(gt_keypoint, skeleton)
-            gt_dis_pix[img_idx, :] = cgt_dis_pix  # image_id - 1
+            cgt_dis_pix, cgt_dis_av = bs.get_keypoint_distances(gt_keypoint, skeleton)
+            gt_dis_pix[img_idx, :] = cgt_dis_pix
+            dis_availability[img_idx, :] = cgt_dis_av
             raw_info_gt[img_idx, :, :] = gt_keypoint
 
             # --Prediction--
-            cpd_dis_pix = bs.get_keypoint_distances(pd_keypoint, skeleton)
+            cpd_dis_pix, _ = bs.get_keypoint_distances(pd_keypoint, skeleton)
             pd_dis_pix[img_idx, :] = cpd_dis_pix
             raw_info_pd[img_idx, :, :] = pd_keypoint
             img_idx += 1
 
     skeleton_names = cfg.skeleton_name
     if only_preds:
-        save_distances_with_model_conversion(pd_dis_pix, skeleton_names, img_codes, img_apa, img_apv,
-                                             os.path.join(args_out_img_root, f'predictions_converted_in_cm.csv'),
-                                             cfg.model_add)
-        save_distances_zipping_by_mean(os.path.join(args_out_img_root, f'predictions_converted_in_cm.csv'),
-                                       os.path.join(args_out_img_root, f'predictions_converted_in_cm_mean.csv'))
-        save_distances_zipping_by_median(os.path.join(args_out_img_root, f'predictions_converted_in_cm.csv'),
-                                         os.path.join(args_out_img_root, f'predictions_converted_in_cm_median.csv'))
+        save_distances_with_model_conversion(pd_dis_pix, skeleton_names, img_codes, img_apa, img_apv, os.path.join(args_out_img_root, f'predictions_converted_in_cm.csv'), cfg.model_add)
+        save_distances_zipping_by_mean(os.path.join(args_out_img_root, f'predictions_converted_in_cm.csv'), os.path.join(args_out_img_root, f'predictions_converted_in_cm_mean.csv'))
+        save_distances_zipping_by_median(os.path.join(args_out_img_root, f'predictions_converted_in_cm.csv'), os.path.join(args_out_img_root, f'predictions_converted_in_cm_median.csv'))
 
         comparer = PopulationComparerByView(args_out_img_root, cfg.real_cm_data, cfg.rostrum_info)
         pd_res, pd_res_latex, base_fil, pd_mae_general = comparer.generate_comparison_current(
@@ -358,27 +353,17 @@ def create_test_quantitative_results(outputs, dataset, checkpoint_name, cfg, lat
             'predictions_converted_in_cm_median.csv')
         res.to_csv(os.path.join(args_out_img_root, f'rm_pd_median_in_cm_compare.csv'), index=False)
     else:
-        save_gt_pd_compare_metrics(raw_info_gt, raw_info_pd,
-                                   os.path.join(args_out_img_root, f'gt_pd_pixel_compare.csv'))
+        save_gt_pd_compare_metrics(raw_info_gt, raw_info_pd, os.path.join(args_out_img_root, f'gt_pd_pixel_compare.csv'))
 
-        save_distances_with_model_conversion(pd_dis_pix, skeleton_names, img_codes, img_apa, img_apv,
-                                             os.path.join(args_out_img_root, f'predictions_converted_in_cm.csv'),
-                                             cfg.model_add)
-        save_distances_with_model_conversion(gt_dis_pix, skeleton_names, img_codes, img_apa, img_apv,
-                                             os.path.join(args_out_img_root, f'ground_truth_converted_in_cm.csv'),
-                                             cfg.model_add)
-        save_distances_zipping_by_mean(os.path.join(args_out_img_root, f'predictions_converted_in_cm.csv'),
-                                       os.path.join(args_out_img_root, f'predictions_converted_in_cm_mean.csv'))
-        save_distances_zipping_by_mean(os.path.join(args_out_img_root, f'ground_truth_converted_in_cm.csv'),
-                                       os.path.join(args_out_img_root, f'ground_truth_converted_in_cm_mean.csv'))
-        save_distances_zipping_by_median(os.path.join(args_out_img_root, f'predictions_converted_in_cm.csv'),
-                                         os.path.join(args_out_img_root, f'predictions_converted_in_cm_median.csv'))
-        save_distances_zipping_by_median(os.path.join(args_out_img_root, f'ground_truth_converted_in_cm.csv'),
-                                         os.path.join(args_out_img_root, f'ground_truth_converted_in_cm_median.csv'))
+        save_distances_with_model_conversion(pd_dis_pix, skeleton_names, img_codes, img_apa, img_apv, os.path.join(args_out_img_root, f'predictions_converted_in_cm.csv'), cfg.model_add)
+        save_distances_with_model_conversion(gt_dis_pix, skeleton_names, img_codes, img_apa, img_apv, os.path.join(args_out_img_root, f'ground_truth_converted_in_cm.csv'), cfg.model_add)
+        save_distances_zipping_by_mean(os.path.join(args_out_img_root, f'predictions_converted_in_cm.csv'), os.path.join(args_out_img_root, f'predictions_converted_in_cm_mean.csv'))
+        save_distances_zipping_by_mean(os.path.join(args_out_img_root, f'ground_truth_converted_in_cm.csv'), os.path.join(args_out_img_root, f'ground_truth_converted_in_cm_mean.csv'))
+        save_distances_zipping_by_median(os.path.join(args_out_img_root, f'predictions_converted_in_cm.csv'), os.path.join(args_out_img_root, f'predictions_converted_in_cm_median.csv'))
+        save_distances_zipping_by_median(os.path.join(args_out_img_root, f'ground_truth_converted_in_cm.csv'), os.path.join(args_out_img_root, f'ground_truth_converted_in_cm_median.csv'))
 
         comparer = PopulationComparerByView(args_out_img_root, cfg.real_cm_data, cfg.rostrum_info)
-        pd_res, pd_res_latex, base_fil, pd_mae_general = comparer.generate_comparison_current(
-            "predictions_converted_in_cm.csv")
+        pd_res, pd_res_latex, base_fil, pd_mae_general = comparer.generate_comparison_current("predictions_converted_in_cm.csv", mask=dis_availability)
         pd_res.to_csv(os.path.join(args_out_img_root, f'rm_pd_in_cm_compare.csv'), index=False)
         sel = ['code'] + skeleton_names
         base_fil = base_fil[sel]
@@ -413,14 +398,9 @@ def create_test_quantitative_results(outputs, dataset, checkpoint_name, cfg, lat
         np.save(os.path.join(args_out_img_root, f'raw_pix_pd.npy'), raw_info_pd)
 
         # Guardar las distancias convertidas por el método de referencia.
-        save_distances_with_reference_model(pd_dis_pix, skeleton_names, img_codes, img_apa, img_apv,
-                                            os.path.join(args_out_img_root, f'predictions_converted_in_cm_by_ref.csv'),
-                                            cfg.rostrum_info)
-        save_distances_zipping_by_mean(os.path.join(args_out_img_root, f'predictions_converted_in_cm_by_ref.csv'),
-                                       os.path.join(args_out_img_root, f'predictions_converted_in_cm_mean_by_ref.csv'))
-        save_distances_zipping_by_median(os.path.join(args_out_img_root, f'predictions_converted_in_cm_by_ref.csv'),
-                                         os.path.join(args_out_img_root,
-                                                      f'predictions_converted_in_cm_median_by_ref.csv'))
+        save_distances_with_reference_model(pd_dis_pix, skeleton_names, img_codes, img_apa, img_apv, os.path.join(args_out_img_root, f'predictions_converted_in_cm_by_ref.csv'), cfg.rostrum_info)
+        save_distances_zipping_by_mean(os.path.join(args_out_img_root, f'predictions_converted_in_cm_by_ref.csv'), os.path.join(args_out_img_root, f'predictions_converted_in_cm_mean_by_ref.csv'))
+        save_distances_zipping_by_median(os.path.join(args_out_img_root, f'predictions_converted_in_cm_by_ref.csv'), os.path.join(args_out_img_root, f'predictions_converted_in_cm_median_by_ref.csv'))
     # if latex_tables:
     #     print(pd_res_latex)
     #     print(gt_res_latex)
@@ -485,53 +465,58 @@ def save_distances_with_model_conversion(dis, skeleton_names, img_codes, img_apa
     conversor = PixelToCentimeterConversor(config_path)
     df_pix = pd.DataFrame(dis, columns=skeleton_names)
     df_pix = prepare_dataframe(df_pix, img_codes, img_apa, img_apv)
-    df_cm = pd.DataFrame(dis, columns=skeleton_names)
-    df_cm = prepare_dataframe(df_cm, img_codes, img_apa, img_apv)
+    df_cm = df_pix.copy()
     view = "lateral" if 'h_head' in skeleton_names else 'dorsal'
-    outliers_acc = []
     if are_two_generations(df_pix):
         df_pix = generate_generation_division(df_pix, "total")
         df_pix = generate_generation_division(df_pix, "l_head")
         df_cm = generate_generation_division(df_cm, "total")
         df_cm = generate_generation_division(df_cm, "l_head")
+    outliers_acc = convert_all_columns(skeleton_names, df_pix, df_cm, conversor, view)
+
+    outliers_df = pd.concat(outliers_acc, ignore_index=True)
+    outliers_df.to_csv(out_file[:-4] + "_outliers.csv", index=False)
+    df = df_cm[['code', 'point_of_view', 'angle'] + skeleton_names]
+    df.to_csv(out_file, index=False)
+
+
+def convert_all_columns(skeleton_names, df_pix, df_cm, conversor, view):
+    out = []
     for col in skeleton_names:
         if (col == 'total' or col == 'l_head') and are_two_generations(df_pix):
             cod = col + "_1_" + view
             X = df_pix[[col + "_1"]].copy()
             X.columns = [col + "_1_pix"]
             X[col + "_1_pix"] = X[col + "_1_pix"].round(4)
-            indice_nan = list(X[X[col + "_1_pix"].isnull()].index)[0]
+            indices = list(X[X[col + "_1_pix"].isnull()].index)
             X = X.fillna(1)
             df_cm_1 = conversor.predict_by_model(cod, X)
-            nan_value = df_cm_1[indice_nan]
-            df_cm_1[df_cm_1 == nan_value] = np.nan
+            if len(indices) != 0:
+                df_cm_1[indices] = np.nan
 
             cod = col + "_2_" + view
             X = df_pix[[col + "_2"]].copy()
             X.columns = [col + "_2_pix"]
             X[col + "_2_pix"] = X[col + "_2_pix"].round(4)
-            indice_nan = list(X[X[col + "_2_pix"].isnull()].index)[0]
+            indices = list(X[X[col + "_2_pix"].isnull()].index)
             X = X.fillna(1)
             df_cm_2 = conversor.predict_by_model(cod, X)
-            nan_value = df_cm_2[indice_nan]
-            df_cm_2[df_cm_2 == nan_value] = np.nan
-
+            if len(indices) != 0:
+                df_cm_2[indices] = np.nan
             df_cm_f = [a if not np.isnan(a) else b for a, b in zip(df_cm_1, df_cm_2)]
-
             df_cm[col] = df_cm_f
             outliers = detectar_outliers(df_cm, df_pix, col)
-            outliers_acc.append(outliers)
+            out.append(outliers)
         else:
             cod = col + "_" + view
             X = df_pix[[col]].copy()
             X.columns = [col + "_pix"]
+            if X.isnull().all().all():
+                continue
             df_cm[col] = conversor.predict_by_model(cod, X)
             outliers = detectar_outliers(df_cm, df_pix, col)
-            outliers_acc.append(outliers)
-    outliers_df = pd.concat(outliers_acc, ignore_index=True)
-    outliers_df.to_csv(out_file[:-4] + "_outliers.csv", index=False)
-    df = df_cm[['code', 'point_of_view', 'angle'] + skeleton_names]
-    df.to_csv(out_file, index=False)
+            out.append(outliers)
+    return out
 
 
 def read_json(file):
@@ -644,12 +629,18 @@ def save_gt_pd_compare_metrics(ground_truth, predictions, out_file):
         y_pred = y_pred[mask]
         y_true = y_true[mask]
 
+        mask_to_remove = np.all(y_true == 0, axis=1)
+        mask_to_keep = ~mask_to_remove
+        y_true = y_true[mask_to_keep]
+        y_pred = y_pred[mask_to_keep]
+
         # Calcular los errores
         mae = np.mean(np.abs(y_pred - y_true))  # MAE
         mse = np.mean((y_pred - y_true) ** 2)  # MSE
         rmse = np.sqrt(mse)  # RMSE
         stddev = np.std(y_pred - y_true)  # Desviación estándar
-        mape = np.mean(np.abs((y_true - y_pred) / y_true) * 100)  # MAPE en porcentaje
+        mask = y_true != 0
+        mape = np.mean(np.abs((y_true[mask] - y_pred[mask]) / y_true[mask]) * 100)
 
         distances = np.linalg.norm(y_true - y_pred, axis=1)
         epe = np.mean(distances)
@@ -673,16 +664,22 @@ def save_gt_pd_compare_metrics(ground_truth, predictions, out_file):
     y_true_total = ground_truth.reshape(-1, 2)
 
     mask = ~np.isnan(y_pred_total).any(axis=1) & ~np.isnan(y_true_total).any(axis=1)
-
     y_pred_total = y_pred_total[mask]
     y_true_total = y_true_total[mask]
+
+    mask_to_remove = np.all(y_true_total == 0, axis=1)
+    mask_to_keep = ~mask_to_remove
+    y_true_total = y_true_total[mask_to_keep]
+    y_pred_total = y_pred_total[mask_to_keep]
 
     # Calcular los errores generales
     mae_total = np.mean(np.abs(y_pred_total - y_true_total))
     mse_total = np.mean((y_pred_total - y_true_total) ** 2)
     rmse_total = np.sqrt(mse_total)
     stddev_total = np.std(y_pred_total - y_true_total)
-    mape_total = np.mean(np.abs((y_true_total - y_pred_total) / y_true_total) * 100)
+    mask = y_true_total != 0
+    mape_total = np.mean(np.abs((y_true_total[mask] - y_pred_total[mask]) / y_true_total[mask]) * 100)
+
     distances = np.linalg.norm(y_true_total - y_pred_total, axis=1)
     epe_total = np.mean(distances)
     stddev_total_epe = np.std(distances)

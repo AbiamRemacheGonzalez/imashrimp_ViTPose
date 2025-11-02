@@ -433,7 +433,7 @@ class TrainingEngine:
                 pd_mae, gt_mae = create_test_quantitative_results(outputs, dataset, checkpoint_name, self.cfg, external_test=external)
                 #propuesta n2 if self.args.predict_images and not complete:
                 #     create_test_qualitative_images(outputs, dataset, checkpoint_name, self.cfg)
-                del results['PCKdis']
+                # del results['PCKdis']
                 results['mae_pd_rm'] = pd_mae
                 results['mae_gt_rm'] = gt_mae
                 create_custom_file(os.path.join(self.cfg.work_dir, "_test_quantitative_" + checkpoint_name + ".txt"),

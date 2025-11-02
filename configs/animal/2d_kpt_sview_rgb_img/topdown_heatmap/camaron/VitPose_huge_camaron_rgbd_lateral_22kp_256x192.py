@@ -2,6 +2,7 @@ _base_ = [
     '../../../../_base_/default_runtime.py',
     '../../../../_base_/datasets/camaron22kp.py'
 ]
+only_rgb = True
 evaluation = dict(interval=1, metric=['PCK', 'PCKe', 'EPE', 'mAP'], save_best='PCK')
 
 optimizer = dict(
@@ -33,6 +34,7 @@ channel_cfg = dict(
     inference_channel=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22])
 
 # model settings
+channels = 4 if not only_rgb else 3
 model = dict(
     type='TopDown',
     pretrained=None,
@@ -40,7 +42,7 @@ model = dict(
         type='ViT',
         img_size=(256, 192),
         patch_size=16,
-        in_chans=4,
+        in_chans=channels,
         embed_dim=1280,
         depth=32,
         num_heads=16,
@@ -82,8 +84,11 @@ data_cfg = dict(
     bbox_file='',
 )
 
+loading_pipeline = 'LoadDepthImageFromFile' if not only_rgb else'LoadImageFromFile'
+means = [0.485, 0.456, 0.406, 0.5491086636771691] if not only_rgb else [0.485, 0.456, 0.406]
+stds = [0.229, 0.224, 0.225, 0.18295328102474284] if not only_rgb else [0.229, 0.224, 0.225]
 train_pipeline = [
-    dict(type='LoadDepthImageFromFile'),
+    dict(type=loading_pipeline),
     dict(type='TopDownRandomFlip', flip_prob=0.5),
     dict(
         type='TopDownHalfBodyTransform',
@@ -95,8 +100,8 @@ train_pipeline = [
     dict(type='ToTensor'),
     dict(
         type='NormalizeTensor',
-        mean=[0.485, 0.456, 0.406, 0.5491086636771691],
-        std=[0.229, 0.224, 0.225, 0.18295328102474284]),
+        mean=means,
+        std=stds),
     dict(type='TopDownGenerateTarget', sigma=2),
     dict(
         type='Collect',
@@ -108,13 +113,13 @@ train_pipeline = [
 ]
 
 val_pipeline = [
-    dict(type='LoadDepthImageFromFile'),
+    dict(type=loading_pipeline),
     dict(type='TopDownAffine'),
     dict(type='ToTensor'),
     dict(
         type='NormalizeTensor',
-        mean=[0.485, 0.456, 0.406, 0.5491086636771691],
-        std=[0.229, 0.224, 0.225, 0.18295328102474284]),
+        mean=means,
+        std=stds),
     dict(
         type='Collect',
         keys=['img'],
@@ -140,13 +145,14 @@ skeleton_order = [[1, 8], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [9, 10
 
 skeleton_name = ["abdomen", "l_1seg", "l_2seg", "l_3seg", "l_4seg", "l_5seg", "l_6seg", "h_head", "h_1seg",
                  "h_2seg", "h_3seg", "h_4seg", "h_5seg", "h_6seg"]
+dataset_type = 'AnimalCamaronDatasetDeep' if not only_rgb else 'AnimalCamaronDataset'
 data = dict(
     samples_per_gpu=8,  # 64
     workers_per_gpu=4,
     val_dataloader=dict(samples_per_gpu=8),  # 32
     test_dataloader=dict(samples_per_gpu=8),  # 32
     train=dict(
-        type='AnimalCamaronDatasetDeep',
+        type=dataset_type,
         ann_file=f'{data_root}/annotations/train_keypoints.json',
         img_prefix=f'{data_root}/images/train/',
         img_prefix_depth=f'{data_root}/depths/train/',
@@ -162,7 +168,7 @@ data = dict(
         pipeline=val_pipeline,
         dataset_info={{_base_.dataset_info}}),
     test=dict(
-        type='AnimalCamaronDatasetDeep',
+        type=dataset_type,
         ann_file=f'{data_root}/annotations/test_keypoints.json',
         img_prefix=f'{data_root}/images/test/',
         img_prefix_depth=f'{data_root}/depths/test/',
@@ -170,7 +176,7 @@ data = dict(
         pipeline=test_pipeline,
         dataset_info={{_base_.dataset_info}}),
     total=dict(
-        type='AnimalCamaronDatasetDeep',
+        type=dataset_type,
         ann_file=f'{data_root}/annotations/total_keypoints.json',
         img_prefix=f'{data_root}/images/total/',
         img_prefix_depth=f'{data_root}/depths/total/',

@@ -58,6 +58,7 @@ class AnimalCamaronDataset(Kpt2dSviewRgbImgTopDownDataset):
     def __init__(self,
                  ann_file,
                  img_prefix,
+                 img_prefix_depth,
                  data_cfg,
                  pipeline,
                  dataset_info=None,

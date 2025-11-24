@@ -2,7 +2,8 @@ _base_ = [
     '../../../../_base_/default_runtime.py',
     '../../../../_base_/datasets/camaron.py'
 ]
-only_rgb = True
+only_rgb = False
+vitpose_size = 'huge'  # options: small, base, large, huge
 evaluation = dict(interval=1, metric=['PCK', 'PCKe', 'EPE', 'mAP'], save_best='PCK')
 
 optimizer = dict(
@@ -35,6 +36,14 @@ channel_cfg = dict(
 
 # model settings
 channels = 4 if not only_rgb else 3
+embed_dim_dict = {'huge': 1280, 'large': 1024, 'base': 768, 'small': 384}
+in_channels_dict = {'huge': 1280, 'large': 1024, 'base': 768, 'small': 384}
+depth_dict = {'huge': 32, 'large': 24, 'base': 12, 'small': 12}
+num_heads_dict = {'huge': 16, 'large': 16, 'base': 12, 'small': 12}
+embed_dim = embed_dim_dict[vitpose_size]
+in_channels = in_channels_dict[vitpose_size]
+depth = depth_dict[vitpose_size]
+num_heads = num_heads_dict[vitpose_size]
 model = dict(
     type='TopDown',
     pretrained=None,
@@ -43,9 +52,9 @@ model = dict(
         img_size=(256, 192),
         patch_size=16,
         in_chans=channels,
-        embed_dim=1280,
-        depth=32,
-        num_heads=16,
+        embed_dim=embed_dim,
+        depth=depth,
+        num_heads=num_heads,
         ratio=1,
         use_checkpoint=False,
         mlp_ratio=4,
@@ -54,7 +63,7 @@ model = dict(
     ),
     keypoint_head=dict(
         type='TopdownHeatmapSimpleHead',
-        in_channels=1280,
+        in_channels=in_channels,
         num_deconv_layers=2,
         num_deconv_filters=(256, 256),
         num_deconv_kernels=(4, 4),
@@ -67,6 +76,7 @@ model = dict(
         post_process='default',
         shift_heatmap=True,
         modulate_kernel=11))
+
 
 data_cfg = dict(
     image_size=[192, 256],

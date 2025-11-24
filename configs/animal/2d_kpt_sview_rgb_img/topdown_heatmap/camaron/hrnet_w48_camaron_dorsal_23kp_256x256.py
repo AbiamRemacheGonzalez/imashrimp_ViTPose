@@ -2,14 +2,13 @@ _base_ = [
     '../../../../_base_/default_runtime.py',
     '../../../../_base_/datasets/camaron.py'
 ]
-only_rgb = False
-vitpose_size = 'huge'  # options: small, base, large, huge
+only_rgb = True
 
 evaluation = dict(interval=1, metric=['PCK', 'PCKe', 'EPE', 'mAP'], save_best='PCK')
 
 optimizer = dict(
     type='Adam',
-    lr=0.002778,
+    lr=5e-4,
 )
 optimizer_config = dict(grad_clip=None)
 # learning policy
@@ -36,40 +35,45 @@ channel_cfg = dict(
     inference_channel=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23])
 
 # model settings
-channels = 4 if not only_rgb else 3
-embed_dim_dict = {'huge': 1280, 'large': 1024, 'base': 768, 'small': 384}
-in_channels_dict = {'huge': 1280, 'large': 1024, 'base': 768, 'small': 384}
-depth_dict = {'huge': 32, 'large': 24, 'base': 12, 'small': 12}
-num_heads_dict = {'huge': 16, 'large': 16, 'base': 12, 'small': 12}
-embed_dim = embed_dim_dict[vitpose_size]
-in_channels = in_channels_dict[vitpose_size]
-depth = depth_dict[vitpose_size]
-num_heads = num_heads_dict[vitpose_size]
 model = dict(
     type='TopDown',
-    pretrained=None,
+    pretrained='https://download.openmmlab.com/mmpose/'
+    'pretrain_models/hrnet_w32-36af842e.pth',
     backbone=dict(
-        type='ViT',
-        img_size=(256, 192),
-        patch_size=16,
-        in_chans=channels,
-        embed_dim=embed_dim,
-        depth=depth,
-        num_heads=num_heads,
-        ratio=1,
-        use_checkpoint=False,
-        mlp_ratio=4,
-        qkv_bias=True,
-        drop_path_rate=0.3,
+        type='HRNet',
+        in_channels=3,
+        extra=dict(
+            stage1=dict(
+                num_modules=1,
+                num_branches=1,
+                block='BOTTLENECK',
+                num_blocks=(4, ),
+                num_channels=(64, )),
+            stage2=dict(
+                num_modules=1,
+                num_branches=2,
+                block='BASIC',
+                num_blocks=(4, 4),
+                num_channels=(32, 64)),
+            stage3=dict(
+                num_modules=4,
+                num_branches=3,
+                block='BASIC',
+                num_blocks=(4, 4, 4),
+                num_channels=(32, 64, 128)),
+            stage4=dict(
+                num_modules=3,
+                num_branches=4,
+                block='BASIC',
+                num_blocks=(4, 4, 4, 4),
+                num_channels=(32, 64, 128, 256))),
     ),
     keypoint_head=dict(
         type='TopdownHeatmapSimpleHead',
-        in_channels=in_channels,
-        num_deconv_layers=2,
-        num_deconv_filters=(256, 256),
-        num_deconv_kernels=(4, 4),
-        extra=dict(final_conv_kernel=1, ),
+        in_channels=32,
         out_channels=channel_cfg['num_output_channels'],
+        num_deconv_layers=0,
+        extra=dict(final_conv_kernel=1, ),
         loss_keypoint=dict(type='JointsMSELoss', use_target_weight=True)),
     train_cfg=dict(),
     test_cfg=dict(
@@ -79,8 +83,8 @@ model = dict(
         modulate_kernel=11))
 
 data_cfg = dict(
-    image_size=[192, 256],
-    heatmap_size=[48, 64],
+    image_size=[256, 256],
+    heatmap_size=[64, 64],
     num_output_channels=channel_cfg['num_output_channels'],
     num_joints=channel_cfg['dataset_joints'],
     dataset_channel=channel_cfg['dataset_channel'],
@@ -93,6 +97,7 @@ data_cfg = dict(
     det_bbox_thr=0.0,
     bbox_file='',
 )
+
 
 loading_pipeline = 'LoadDepthImageFromFile' if not only_rgb else'LoadImageFromFile'
 means = [0.485, 0.456, 0.406, 0.5491086636771691] if not only_rgb else [0.485, 0.456, 0.406]

@@ -215,6 +215,10 @@ def create_test_qualitative_images(
                                                     f'{image_name[:-4]}_test_complete.jpg')
                 out_file_err = os.path.join(os.path.join(args_out_img_root, "error"), f'{image_name[:-4]}_error.jpg')
                 out_file_hm = os.path.join(os.path.join(args_out_img_root, "heatmap"), f'{image_name[:-4]}_ht.jpg')
+                out_file_hm_err = os.path.join(os.path.join(args_out_img_root, "heatmap"),
+                                               f'{image_name[:-4]}_ht_error_tx.jpg')
+                out_file_hm_err_ntx = os.path.join(os.path.join(args_out_img_root, "heatmap"),
+                                                   f'{image_name[:-4]}_ht_error_ntx.jpg')
 
                 # --Zoom--
                 zoom = get_image_zoom(pd_config['keypoints'], gt_config['keypoints'])
@@ -252,12 +256,19 @@ def create_test_qualitative_images(
 
                 # --Heatmap Image--
                 ht_image = image_np.copy()
-                if not only_preds:
-                    image_hmj = get_image_with_all_joint_heatmaps(pd_heatmaps, pd_config['keypoints'], ht_image)
-                    ht_image = get_superposition_images([image_hmj], ht_image)
-                    cv2.imwrite(out_file_hm, ht_image)
-                    ht_image = ht_image[zoom['y1']:zoom['y2'], zoom['x1']:zoom['x2'], :]
-                    put_text_in_image(ht_image, "Heatmap Prediction")
+                # if not only_preds:
+                image_hmj = get_image_with_all_joint_heatmaps(pd_heatmaps, pd_config['keypoints'], ht_image)
+                ht_image = get_superposition_images([image_hmj], ht_image)
+                cv2.imwrite(out_file_hm, ht_image)
+                ht_dis_err_image = get_dis_err_image(ht_image.copy(), gt_config['keypoints'], pd_config['keypoints'],
+                                                     args_radius=args_radius, args_line_width=args_line_width)
+                cv2.imwrite(out_file_hm_err, ht_dis_err_image)
+                ht_dis_err_image_nx = get_dis_err_image(ht_image.copy(), gt_config['keypoints'], pd_config['keypoints'],
+                                                        text=False, args_radius=args_radius,
+                                                        args_line_width=args_line_width)
+                cv2.imwrite(out_file_hm_err_ntx, ht_dis_err_image_nx)
+                ht_image = ht_image[zoom['y1']:zoom['y2'], zoom['x1']:zoom['x2'], :]
+                put_text_in_image(ht_image, "Heatmap Prediction")
 
                 # --Saving the composition--
                 if not only_preds:
@@ -293,9 +304,10 @@ def create_test_quantitative_results(outputs, dataset, checkpoint_name, cfg, onl
     gt_imgs_info = [coco.loadImgs(image_id)[0] for image_id in img_keys]
     skeleton = cfg.skeleton_order
 
-    num_kp = coco.anns[img_keys[0]]['num_keypoints']
+    num_kp = int(len(coco.anns[img_keys[0]]['keypoints']) / 3)
     raw_info_gt = np.zeros((len(img_keys), num_kp, 2))
     raw_info_pd = np.zeros((len(img_keys), num_kp, 2))
+    raw_confidence_pd = np.zeros((len(img_keys), num_kp))
     gt_dis_pix = np.zeros((len(img_keys), len(skeleton)))
     pd_dis_pix = np.zeros((len(img_keys), len(skeleton)))
     dis_availability = np.ones((len(img_keys), len(skeleton)))
@@ -315,7 +327,14 @@ def create_test_quantitative_results(outputs, dataset, checkpoint_name, cfg, onl
 
             image_id = next((d for d in gt_imgs_info if d["file_name"] == image_name), None)['id']
             gt_keypoint = get_gt_keypoints(coco, image_id)
+            if gt_keypoint.shape[0] > num_kp:
+                gt_keypoint = gt_keypoint[1:, :]
+            elif gt_keypoint.shape[0] < num_kp:
+                padding = np.zeros((1, 2))
+                gt_keypoint = np.concatenate((padding, gt_keypoint), axis=0)
+
             pd_keypoint = batch_item['preds'][idx, :, :2]
+            pd_confidence = batch_item['preds'][idx, :, 2]
 
             # --Ground Truth--
             cgt_dis_pix, cgt_dis_av = bs.get_keypoint_distances(gt_keypoint, skeleton)
@@ -327,13 +346,18 @@ def create_test_quantitative_results(outputs, dataset, checkpoint_name, cfg, onl
             cpd_dis_pix, _ = bs.get_keypoint_distances(pd_keypoint, skeleton)
             pd_dis_pix[img_idx, :] = cpd_dis_pix
             raw_info_pd[img_idx, :, :] = pd_keypoint
+            raw_confidence_pd[img_idx, :] = pd_confidence
             img_idx += 1
 
     skeleton_names = cfg.skeleton_name
     if only_preds:
-        save_distances_with_model_conversion(pd_dis_pix, skeleton_names, img_codes, img_apa, img_apv, os.path.join(args_out_img_root, f'predictions_converted_in_cm.csv'), cfg.model_add)
-        save_distances_zipping_by_mean(os.path.join(args_out_img_root, f'predictions_converted_in_cm.csv'), os.path.join(args_out_img_root, f'predictions_converted_in_cm_mean.csv'))
-        save_distances_zipping_by_median(os.path.join(args_out_img_root, f'predictions_converted_in_cm.csv'), os.path.join(args_out_img_root, f'predictions_converted_in_cm_median.csv'))
+        save_distances_with_model_conversion(pd_dis_pix, skeleton_names, img_codes, img_apa, img_apv,
+                                             os.path.join(args_out_img_root, f'predictions_converted_in_cm.csv'),
+                                             cfg.model_add)
+        save_distances_zipping_by_mean(os.path.join(args_out_img_root, f'predictions_converted_in_cm.csv'),
+                                       os.path.join(args_out_img_root, f'predictions_converted_in_cm_mean.csv'))
+        save_distances_zipping_by_median(os.path.join(args_out_img_root, f'predictions_converted_in_cm.csv'),
+                                         os.path.join(args_out_img_root, f'predictions_converted_in_cm_median.csv'))
 
         comparer = PopulationComparerByView(args_out_img_root, cfg.real_cm_data, cfg.rostrum_info)
         pd_res, pd_res_latex, base_fil, pd_mae_general = comparer.generate_comparison_current(
@@ -353,17 +377,28 @@ def create_test_quantitative_results(outputs, dataset, checkpoint_name, cfg, onl
             'predictions_converted_in_cm_median.csv')
         res.to_csv(os.path.join(args_out_img_root, f'rm_pd_median_in_cm_compare.csv'), index=False)
     else:
-        save_gt_pd_compare_metrics(raw_info_gt, raw_info_pd, os.path.join(args_out_img_root, f'gt_pd_pixel_compare.csv'))
+        save_gt_pd_compare_metrics(raw_info_gt, raw_info_pd,
+                                   os.path.join(args_out_img_root, f'gt_pd_pixel_compare.csv'),
+                                   confidence_pd=raw_confidence_pd)
 
-        save_distances_with_model_conversion(pd_dis_pix, skeleton_names, img_codes, img_apa, img_apv, os.path.join(args_out_img_root, f'predictions_converted_in_cm.csv'), cfg.model_add)
-        save_distances_with_model_conversion(gt_dis_pix, skeleton_names, img_codes, img_apa, img_apv, os.path.join(args_out_img_root, f'ground_truth_converted_in_cm.csv'), cfg.model_add)
-        save_distances_zipping_by_mean(os.path.join(args_out_img_root, f'predictions_converted_in_cm.csv'), os.path.join(args_out_img_root, f'predictions_converted_in_cm_mean.csv'))
-        save_distances_zipping_by_mean(os.path.join(args_out_img_root, f'ground_truth_converted_in_cm.csv'), os.path.join(args_out_img_root, f'ground_truth_converted_in_cm_mean.csv'))
-        save_distances_zipping_by_median(os.path.join(args_out_img_root, f'predictions_converted_in_cm.csv'), os.path.join(args_out_img_root, f'predictions_converted_in_cm_median.csv'))
-        save_distances_zipping_by_median(os.path.join(args_out_img_root, f'ground_truth_converted_in_cm.csv'), os.path.join(args_out_img_root, f'ground_truth_converted_in_cm_median.csv'))
+        save_distances_with_model_conversion(pd_dis_pix, skeleton_names, img_codes, img_apa, img_apv,
+                                             os.path.join(args_out_img_root, f'predictions_converted_in_cm.csv'),
+                                             cfg.model_add)
+        save_distances_with_model_conversion(gt_dis_pix, skeleton_names, img_codes, img_apa, img_apv,
+                                             os.path.join(args_out_img_root, f'ground_truth_converted_in_cm.csv'),
+                                             cfg.model_add)
+        save_distances_zipping_by_mean(os.path.join(args_out_img_root, f'predictions_converted_in_cm.csv'),
+                                       os.path.join(args_out_img_root, f'predictions_converted_in_cm_mean.csv'))
+        save_distances_zipping_by_mean(os.path.join(args_out_img_root, f'ground_truth_converted_in_cm.csv'),
+                                       os.path.join(args_out_img_root, f'ground_truth_converted_in_cm_mean.csv'))
+        save_distances_zipping_by_median(os.path.join(args_out_img_root, f'predictions_converted_in_cm.csv'),
+                                         os.path.join(args_out_img_root, f'predictions_converted_in_cm_median.csv'))
+        save_distances_zipping_by_median(os.path.join(args_out_img_root, f'ground_truth_converted_in_cm.csv'),
+                                         os.path.join(args_out_img_root, f'ground_truth_converted_in_cm_median.csv'))
 
         comparer = PopulationComparerByView(args_out_img_root, cfg.real_cm_data, cfg.rostrum_info)
-        pd_res, pd_res_latex, base_fil, pd_mae_general = comparer.generate_comparison_current("predictions_converted_in_cm.csv", mask=dis_availability)
+        pd_res, pd_res_latex, base_fil, pd_mae_general = comparer.generate_comparison_current(
+            "predictions_converted_in_cm.csv", mask=dis_availability)
         pd_res.to_csv(os.path.join(args_out_img_root, f'rm_pd_in_cm_compare.csv'), index=False)
         sel = ['code'] + skeleton_names
         base_fil = base_fil[sel]
@@ -398,9 +433,14 @@ def create_test_quantitative_results(outputs, dataset, checkpoint_name, cfg, onl
         np.save(os.path.join(args_out_img_root, f'raw_pix_pd.npy'), raw_info_pd)
 
         # Guardar las distancias convertidas por el método de referencia.
-        save_distances_with_reference_model(pd_dis_pix, skeleton_names, img_codes, img_apa, img_apv, os.path.join(args_out_img_root, f'predictions_converted_in_cm_by_ref.csv'), cfg.rostrum_info)
-        save_distances_zipping_by_mean(os.path.join(args_out_img_root, f'predictions_converted_in_cm_by_ref.csv'), os.path.join(args_out_img_root, f'predictions_converted_in_cm_mean_by_ref.csv'))
-        save_distances_zipping_by_median(os.path.join(args_out_img_root, f'predictions_converted_in_cm_by_ref.csv'), os.path.join(args_out_img_root, f'predictions_converted_in_cm_median_by_ref.csv'))
+        save_distances_with_reference_model(pd_dis_pix, skeleton_names, img_codes, img_apa, img_apv,
+                                            os.path.join(args_out_img_root, f'predictions_converted_in_cm_by_ref.csv'),
+                                            cfg.rostrum_info)
+        save_distances_zipping_by_mean(os.path.join(args_out_img_root, f'predictions_converted_in_cm_by_ref.csv'),
+                                       os.path.join(args_out_img_root, f'predictions_converted_in_cm_mean_by_ref.csv'))
+        save_distances_zipping_by_median(os.path.join(args_out_img_root, f'predictions_converted_in_cm_by_ref.csv'),
+                                         os.path.join(args_out_img_root,
+                                                      f'predictions_converted_in_cm_median_by_ref.csv'))
     # if latex_tables:
     #     print(pd_res_latex)
     #     print(gt_res_latex)
@@ -614,7 +654,7 @@ def detectar_outliers(df_cm, df_pix, columna):
     return outliers_finales
 
 
-def save_gt_pd_compare_metrics(ground_truth, predictions, out_file):
+def save_gt_pd_compare_metrics(ground_truth, predictions, out_file, confidence_pd=None):
     # ground_truth = pd.DataFrame(raw_info_gt, columns=keypoint_names)
     # predictions = pd.DataFrame(raw_info_pd, columns=keypoint_names)
 
@@ -624,17 +664,23 @@ def save_gt_pd_compare_metrics(ground_truth, predictions, out_file):
     for i in range(ground_truth.shape[1]):  # Para cada punto
         y_pred = predictions[:, i, :]  # Coordenadas predichas del punto i en todas las muestras
         y_true = ground_truth[:, i, :]  # Coordenadas ground truth del punto i en todas las muestras
+        conf_pred = confidence_pd[:, i] if confidence_pd is not None else None
 
         mask = ~np.isnan(y_pred).any(axis=1) & ~np.isnan(y_true).any(axis=1)
         y_pred = y_pred[mask]
         y_true = y_true[mask]
+        if conf_pred is not None:
+            conf_pred = conf_pred[mask]
 
         mask_to_remove = np.all(y_true == 0, axis=1)
         mask_to_keep = ~mask_to_remove
         y_true = y_true[mask_to_keep]
         y_pred = y_pred[mask_to_keep]
+        if conf_pred is not None:
+            conf_pred = conf_pred[mask_to_keep]
 
         # Calcular los errores
+        conf_mean = np.mean(conf_pred) if conf_pred is not None else None
         mae = np.mean(np.abs(y_pred - y_true))  # MAE
         mse = np.mean((y_pred - y_true) ** 2)  # MSE
         rmse = np.sqrt(mse)  # RMSE
@@ -656,23 +702,30 @@ def save_gt_pd_compare_metrics(ground_truth, predictions, out_file):
             'MSE': mse,
             'RMSE': rmse,
             'StdDev': stddev,
-            'MAPE': mape
+            'MAPE': mape,
+            'Confidence': conf_mean
         })
 
     # Calcular métricas generales (para todos los puntos y muestras juntos)
     y_pred_total = predictions.reshape(-1, 2)  # Aplanar para tener todas las coordenadas juntas
     y_true_total = ground_truth.reshape(-1, 2)
+    conf_pred_total = confidence_pd.reshape(-1) if confidence_pd is not None else None
 
     mask = ~np.isnan(y_pred_total).any(axis=1) & ~np.isnan(y_true_total).any(axis=1)
     y_pred_total = y_pred_total[mask]
     y_true_total = y_true_total[mask]
+    if conf_pred_total is not None:
+        conf_pred_total = conf_pred_total[mask]
 
     mask_to_remove = np.all(y_true_total == 0, axis=1)
     mask_to_keep = ~mask_to_remove
     y_true_total = y_true_total[mask_to_keep]
     y_pred_total = y_pred_total[mask_to_keep]
+    if conf_pred_total is not None:
+        conf_pred_total = conf_pred_total[mask_to_keep]
 
     # Calcular los errores generales
+    mean_conf_total = np.mean(conf_pred_total) if conf_pred_total is not None else None
     mae_total = np.mean(np.abs(y_pred_total - y_true_total))
     mse_total = np.mean((y_pred_total - y_true_total) ** 2)
     rmse_total = np.sqrt(mse_total)
@@ -693,20 +746,32 @@ def save_gt_pd_compare_metrics(ground_truth, predictions, out_file):
         'SD(EPE)': stddev_total_epe,
         'MSE': mse_total,
         'RMSE': rmse_total,
-        'MAPE': mape_total
+        'MAPE': mape_total,
+        'Confidence': mean_conf_total
     })
 
     if ground_truth.shape[1] == 23:
         y_pred = predictions[:, 1:23, :]  # Coordenadas predichas del punto i en todas las muestras
         y_true = ground_truth[:, 1:23, :]
+        conf_pred_reduced = confidence_pd[:, 1:23] if confidence_pd is not None else None
         y_pred_total = y_pred.reshape(-1, 2)  # Aplanar para tener todas las coordenadas juntas
         y_true_total = y_true.reshape(-1, 2)
+        conf_pred_total = conf_pred_reduced.reshape(-1) if conf_pred_reduced is not None else None
 
         mask = ~np.isnan(y_pred_total).any(axis=1) & ~np.isnan(y_true_total).any(axis=1)
         y_pred_total = y_pred_total[mask]
         y_true_total = y_true_total[mask]
+        if conf_pred_total is not None:
+            conf_pred_total = conf_pred_total[mask]
+
+        # mask = ~np.isnan(y_pred_total).any(axis=1) & ~np.isnan(y_true_total).any(axis=1)
+        # y_pred_total = y_pred_total[mask]
+        # y_true_total = y_true_total[mask]
+        # if conf_pred_total is not None:
+        #     conf_pred_total = conf_pred_total[mask]
 
         # Calcular los errores generales
+        mean_conf_total = np.mean(conf_pred_total) if conf_pred_total is not None else None
         mae_total = np.mean(np.abs(y_pred_total - y_true_total))
         mse_total = np.mean((y_pred_total - y_true_total) ** 2)
         rmse_total = np.sqrt(mse_total)
@@ -725,7 +790,8 @@ def save_gt_pd_compare_metrics(ground_truth, predictions, out_file):
             'SD(EPE)': stddev_total_epe,
             'MSE': mse_total,
             'RMSE': rmse_total,
-            'MAPE': mape_total
+            'MAPE': mape_total,
+            'Confidence': mean_conf_total
         })
 
     # Convertir la lista de resultados en un DataFrame
@@ -733,7 +799,7 @@ def save_gt_pd_compare_metrics(ground_truth, predictions, out_file):
     # print(results.to_string())
 
     results = results.round(2)
-    results = results[['Point', 'EPE', 'SD(EPE)', 'RMSE', 'MAPE']]
+    results = results[['Point', 'EPE', 'SD(EPE)', 'RMSE', 'MAPE', 'Confidence']]
     results.to_csv(out_file, index=False)
     # Convertir el DataFrame a LaTeX
     latex_table = results.to_latex(index=False,
@@ -917,7 +983,7 @@ def get_bounding_box(puntos_clave):
     return x_min, y_min, ancho, alto
 
 
-def get_dis_err_image(image, gt_keypoint, pd_keypoint, zoom=None, args_radius=5, args_line_width=2):
+def get_dis_err_image(image, gt_keypoint, pd_keypoint, zoom=None, args_radius=1, args_line_width=1, text=True):
     dis_err_image = image.copy()
     p_key = np.expand_dims(np.array(pd_keypoint), axis=0)
     g_key = np.expand_dims(np.array(gt_keypoint), axis=0)
@@ -926,7 +992,7 @@ def get_dis_err_image(image, gt_keypoint, pd_keypoint, zoom=None, args_radius=5,
     distances = _calc_distances(p_key, g_key, mask, th)
 
     font = cv2.FONT_HERSHEY_DUPLEX
-    font_scale = 0.4
+    font_scale = 0.3
     font_thickness = 1
     font_color = (255, 255, 255)
     for gtp, pdp, e in zip(gt_keypoint, pd_keypoint, distances):
@@ -937,19 +1003,22 @@ def get_dis_err_image(image, gt_keypoint, pd_keypoint, zoom=None, args_radius=5,
         cv2.circle(dis_err_image, pdp, args_radius, (0, 0, 255), -1)
 
         punto_medio = (5 + (gtp[0] + pdp[0]) // 2, 5 + (gtp[1] + pdp[1]) // 2)
-        cv2.putText(dis_err_image, str(round(e[0], 2)), punto_medio, font, font_scale, (0, 0, 0),
-                    font_thickness + 1)
-        cv2.putText(dis_err_image, str(round(e[0], 2)), punto_medio, font, font_scale, font_color,
-                    font_thickness)
+        if text:
+            cv2.putText(dis_err_image, str(round(e[0], 2)), punto_medio, font, font_scale, (0, 0, 0),
+                        font_thickness + 1)
+            cv2.putText(dis_err_image, str(round(e[0], 2)), punto_medio, font, font_scale, font_color,
+                        font_thickness)
 
     if zoom:
         dis_err_image = dis_err_image[zoom['y1']:zoom['y2'], zoom['x1']:zoom['x2'], :]
-    put_text_in_image(dis_err_image, "Error Distance (cm)")
+    if text:
+        put_text_in_image(dis_err_image, "Error Distance (cm)")
     err_m = str(round(np.mean(distances), 2))
     err_me = str(round(np.median(distances), 2))
     err_d = str(round(np.std(distances), 2))
-    put_text_in_image(dis_err_image, f"mean = {err_m}; median = {err_me}; std = {err_d}", pos=(10, 35), size=0.6,
-                      thickness=2)
+    if text:
+        put_text_in_image(dis_err_image, f"mean = {err_m}; median = {err_me}; std = {err_d}", pos=(10, 35), size=0.6,
+                          thickness=2)
     return dis_err_image
 
 
@@ -1222,7 +1291,7 @@ def get_preds_for_heatmaps(heatmaps):
     return preds[0, :, :]
 
 
-def get_image_with_all_joint_heatmaps(heatmaps, real_kpts, image_data):
+def get_image_with_all_joint_heatmaps_old(heatmaps, real_kpts, image_data):
     heatmap_kpts = get_preds_for_heatmaps(heatmaps)
     c_h_py = heatmaps.shape[2] / 2
     c_h_px = heatmaps.shape[3] / 2
@@ -1241,6 +1310,222 @@ def get_image_with_all_joint_heatmaps(heatmaps, real_kpts, image_data):
     max_val = real_htmp.max()
     real_htmp = ((real_htmp - min_val) / (max_val - min_val)) * 255
     return real_htmp
+
+
+def get_image_with_all_joint_heatmaps(heatmaps, pd_keypoints, image_data, scale_factor=4.0):
+    """
+    Genera una imagen con todos los heatmaps de articulaciones,
+    con un factor de escala aplicado.
+    """
+
+    # (1) Obtener picos en los heatmaps originales (pequeños)
+    heatmap_kpts = get_preds_for_heatmaps(heatmaps)
+
+    # (2) Preparar lienzo final
+    final_h, final_w = image_data.shape[0], image_data.shape[1]
+    real_htmp = np.full((final_h, final_w), 0.)
+
+    orig_h, orig_w = heatmaps.shape[2], heatmaps.shape[3]
+
+    # (3) Calcular nuevas dimensiones
+    new_h = int(orig_h * scale_factor)
+    new_w = int(orig_w * scale_factor)
+
+    # (4) Iterar y "estampar" heatmaps escalados
+    for kpt_idx in range(heatmap_kpts.shape[0]):
+        # Obtener el heatmap original para la articulación actual
+        ht = heatmaps[0, kpt_idx, :, :]
+        if heatmap_kpts[kpt_idx][0] < 0 or heatmap_kpts[kpt_idx][1] < 0:
+            continue
+        # Coordenadas del pico en el heatmap pequeño original (64x48)
+        x_p_small = heatmap_kpts[kpt_idx][0]
+        y_p_small = heatmap_kpts[kpt_idx][1]
+
+        is_on_border = (
+            x_p_small == 0 or
+            y_p_small == 0 or
+            x_p_small >= (orig_w - 1) or # Usar >= por si acaso (flotantes)
+            y_p_small >= (orig_h - 1)
+        )
+
+        if is_on_border:
+            # Crear un heatmap gaussiano artificial centrado
+            ht = _create_gaussian_heatmap(orig_h, orig_w, orig_w / 2, orig_h / 2, sigma=2)
+            x_p_small = orig_w / 2
+            y_p_small = orig_h / 2
+
+        # Coordenadas del keypoint final en la imagen grande (1080x1920)
+        x_real = pd_keypoints[kpt_idx][0]
+        y_real = pd_keypoints[kpt_idx][1]
+
+        #  Escalar el heatmap original
+        ht_scaled = cv2.resize(ht, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
+
+        # Calcular dónde estaría el pico en el heatmap *escalado*
+        x_p_scaled = x_p_small * scale_factor
+        y_p_scaled = y_p_small * scale_factor
+
+        # Calcular las coordenadas de pegado (esquina superior-izquierda)
+        # para que el pico escalado coincida con el keypoint real
+        x_start = round(x_real - x_p_scaled)
+        y_start = round(y_real - y_p_scaled)
+
+        # Coordenadas de fin
+        x_end = x_start + new_w
+        y_end = y_start + new_h
+
+        # --- Manejo de Clipping (evitar desbordamiento) ---
+
+        # Calcular la región de destino (en el lienzo grande)
+        dst_y_start = max(0, y_start)
+        dst_y_end = min(final_h, y_end)
+        dst_x_start = max(0, x_start)
+        dst_x_end = min(final_w, x_end)
+
+        # Si está completamente fuera de la pantalla, saltar
+        if dst_y_start >= dst_y_end or dst_x_start >= dst_x_end:
+            continue
+
+        # Calcular la región de origen (del heatmap escalado)
+        src_y_start = dst_y_start - y_start
+        src_y_end = src_y_start + (dst_y_end - dst_y_start)
+        src_x_start = dst_x_start - x_start
+        src_x_end = src_x_start + (dst_x_end - dst_x_start)
+
+        # (5) Pegar aditivamente la porción visible del heatmap escalado
+        real_htmp[dst_y_start:dst_y_end, dst_x_start:dst_x_end] += \
+            ht_scaled[src_y_start:src_y_end, src_x_start:src_x_end]
+
+    # (6) Normalización final
+    min_val = real_htmp.min()
+    max_val = real_htmp.max()
+
+    # Evitar división por cero si el heatmap está vacío
+    if max_val - min_val > 0:
+        real_htmp = ((real_htmp - min_val) / (max_val - min_val)) * 255
+
+    return real_htmp.astype(np.uint8)
+
+
+def _create_gaussian_heatmap(h, w, center_x, center_y, sigma=5):
+    """Crea un heatmap gaussiano 2D."""
+    y, x = np.indices((h, w))
+    dist_sq = (x - center_x) ** 2 + (y - center_y) ** 2
+    # Evitar división por cero si sigma es muy pequeño
+    sigma_sq = max(sigma ** 2, 1e-6)
+    gauss = np.exp(-dist_sq / (2 * sigma_sq))
+    return gauss
+
+
+def get_image_with_all_joint_heatmaps_b1(heatmaps, pd_keypoints, image_data, scale_factor=4.0, sigma=5.0,
+                                         generation_margin=10.0):
+    """
+    Genera una imagen con todos los heatmaps de articulaciones.
+
+    Versión Híbrida:
+    - Usa el heatmap de entrada (escalado) si el pico está centrado.
+    - Genera un heatmap artificial si el pico está cerca del borde
+      (para evitar mostrar heatmaps de entrada recortados).
+    """
+
+    # (1) Obtener picos en los heatmaps originales (pequeños)
+    # (Esta función debe estar definida fuera de este archivo)
+    heatmap_kpts = get_preds_for_heatmaps(heatmaps)
+
+    # (2) Preparar lienzo final
+    final_h, final_w = image_data.shape[0], image_data.shape[1]
+    real_htmp = np.full((final_h, final_w), 0.)
+
+    orig_h, orig_w = heatmaps.shape[2], heatmaps.shape[3]
+
+    # (3) Calcular nuevas dimensiones
+    new_h = int(orig_h * scale_factor)
+    new_w = int(orig_w * scale_factor)
+
+    # Calcular el sigma (dispersión) escalado
+    scaled_sigma = sigma * scale_factor
+
+    # (4) Iterar y "estampar" heatmaps escalados
+    for kpt_idx in range(heatmap_kpts.shape[0]):
+        if heatmap_kpts[kpt_idx][0] < 0 or heatmap_kpts[kpt_idx][1] < 0:
+            continue
+
+        # Coordenadas del pico en el heatmap pequeño original (64x48)
+        x_p_small = heatmap_kpts[kpt_idx][0]
+        y_p_small = heatmap_kpts[kpt_idx][1]
+
+        # Coordenadas del keypoint final en la imagen grande (1080x1920)
+        x_real = pd_keypoints[kpt_idx][0]
+        y_real = pd_keypoints[kpt_idx][1]
+
+        # --- MODIFICACIÓN HÍBRIDA ---
+
+        # Calcular dónde estaría el pico en el heatmap *escalado*
+        x_p_scaled = x_p_small * scale_factor
+        y_p_scaled = y_p_small * scale_factor
+
+        # Comprobar si el pico está demasiado cerca del borde del heatmap ORIGINAL
+        is_clipped = (
+                x_p_small < generation_margin or
+                y_p_small < generation_margin or
+                x_p_small >= (orig_w - generation_margin) or
+                y_p_small >= (orig_h - generation_margin)
+        )
+
+        if is_clipped:
+            # (1) El pico está cerca del borde.
+            # Generar un heatmap artificial para evitar el "corte".
+            ht_scaled = _create_gaussian_heatmap(
+                new_h, new_w, x_p_scaled, y_p_scaled, scaled_sigma
+            )
+        else:
+            # (2) El pico está centrado y seguro.
+            # Usar el heatmap original y escalarlo.
+            ht = heatmaps[0, kpt_idx, :, :]
+            ht_scaled = cv2.resize(ht, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
+
+        # --- FIN DE LA MODIFICACIÓN ---
+
+        # Calcular las coordenadas de pegado (esquina superior-izquierda)
+        # para que el pico escalado coincida con el keypoint real
+        x_start = round(x_real - x_p_scaled)
+        y_start = round(y_real - y_p_scaled)
+
+        # Coordenadas de fin
+        x_end = x_start + new_w
+        y_end = y_start + new_h
+
+        # --- Manejo de Clipping (evitar desbordamiento) ---
+
+        # Calcular la región de destino (en el lienzo grande)
+        dst_y_start = max(0, y_start)
+        dst_y_end = min(final_h, y_end)
+        dst_x_start = max(0, x_start)
+        dst_x_end = min(final_w, x_end)
+
+        # Si está completamente fuera de la pantalla, saltar
+        if dst_y_start >= dst_y_end or dst_x_start >= dst_x_end:
+            continue
+
+        # Calcular la región de origen (del heatmap escalado)
+        src_y_start = dst_y_start - y_start
+        src_y_end = src_y_start + (dst_y_end - dst_y_start)
+        src_x_start = dst_x_start - x_start
+        src_x_end = src_x_start + (dst_x_end - dst_x_start)
+
+        # (5) Pegar aditivamente la porción visible del heatmap escalado
+        real_htmp[dst_y_start:dst_y_end, dst_x_start:dst_x_end] += \
+            ht_scaled[src_y_start:src_y_end, src_x_start:src_x_end]
+
+    # (6) Normalización final
+    min_val = real_htmp.min()
+    max_val = real_htmp.max()
+
+    # Evitar división por cero si el heatmap está vacío
+    if max_val - min_val > 0:
+        real_htmp = ((real_htmp - min_val) / (max_val - min_val)) * 255
+
+    return real_htmp.astype(np.uint8)
 
 
 def get_superposition_images(images_whm, img):

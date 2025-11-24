@@ -46,6 +46,12 @@ except ImportError:
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
+import cv2
+import numpy as np
+import torch
+from imashrimp_ViTPose.mmpose.core.post_processing import get_affine_transform
+from imashrimp_ViTPose.mmpose.datasets import build_dataloader # ¡Importante!
+
 
 class TrainingEngine:
     def __init__(self, args, cfg, complete_system=False):
@@ -408,7 +414,7 @@ class TrainingEngine:
                 outputs = single_gpu_test(model, data_loader)
                 fin = time.time()
                 tiempo_ejecucion = fin - inicio
-                # print(f"Tiempo de ejecución: {tiempo_ejecucion} segundos")
+                print(f"Tiempo de ejecución: {tiempo_ejecucion} segundos")
             else:
                 model = MMDistributedDataParallel(
                     model.cuda(),
@@ -421,6 +427,140 @@ class TrainingEngine:
                 tiempo_ejecucion = fin - inicio
                 print(f"Tiempo de ejecución: {tiempo_ejecucion} segundos")
 
+            def debug_heatmaps(outputs, dataset, test_loader_cfg, data_cfg):
+                """
+                Visualiza los heatmaps generados superpuestos en las imágenes de test originales.
+
+                Itera sobre los 'outputs' (que ya contienen los heatmaps) y un NUEVO
+                data_loader (para obtener los metadatos de transformación) en paralelo.
+                """
+                print("IMASHRIMP: Iniciando visualización de heatmaps...")
+                print("CONTROLES: Pulsa 'n' para la siguiente imagen, 'q' para salir.")
+
+                # 1. Crear un nuevo data_loader para iterar en paralelo
+                # El data_loader original fue consumido por single_gpu_test/multi_gpu_test
+                # Nos aseguramos de que no sea distribuido y no se mezcle (shuffle=False)
+                debug_loader_cfg = test_loader_cfg.copy()
+                debug_loader_cfg['dist'] = False
+                debug_loader_cfg['shuffle'] = False
+                debug_data_loader = build_dataloader(dataset, **debug_loader_cfg)
+
+                # 2. Obtener tamaños de la config (formato W, H)
+                try:
+                    net_input_w, net_input_h = data_cfg['image_size']  # [192, 256]
+                    heatmap_w, heatmap_h = data_cfg['heatmap_size']  # [48, 64]
+                except KeyError as e:
+                    print(f"Error: {e} no se encuentra en data_cfg. Revisa tu configuración.")
+                    return
+                except TypeError as e:
+                    print(f"Error: data_cfg no parece ser un diccionario válido. {e}")
+                    return
+
+                # 3. Iterar sobre los outputs y el nuevo data_loader simultáneamente
+                for batch_output, batch_data in zip(outputs, debug_data_loader):
+
+                    # Extraer info del data_loader (metadatos)
+                    batch_metas = batch_data['img_metas']  # Lista de DataContainer
+
+                    # Extraer info de los outputs (heatmaps)
+                    batch_heatmaps = batch_output['output_heatmaps']
+                    if isinstance(batch_heatmaps, torch.Tensor):
+                        batch_heatmaps_np = batch_heatmaps.cpu().numpy()
+                    else:
+                        batch_heatmaps_np = batch_heatmaps
+
+                    # 4. Iterar sobre cada imagen en el batch
+                    for i in range(len(batch_metas)):
+
+                        # --- Metadatos de transformación ---
+                        # .data accede al contenido del DataContainer de MMPose
+                        meta = batch_metas[i].data
+                        image_path = meta['image_file']
+                        center = meta['center']
+                        scale = meta['scale']
+
+                        # --- Heatmaps de la imagen ---
+                        heatmaps_para_imagen = batch_heatmaps_np[i]  # (num_kpts, H, W) -> (23, 64, 48)
+
+                        # Agregamos los heatmaps: tomamos el valor máximo de todos los 23 kpts
+                        # para tener una sola visualización.
+                        heatmap_agg = np.max(heatmaps_para_imagen, axis=0)  # (H, W) -> (64, 48)
+
+                        # --- Invertir Transformación Afín ---
+
+                        # 5. Cargar imagen original
+                        try:
+                            original_img = cv2.imread(image_path)
+                            if original_img is None:
+                                print(f"WARN: No se pudo cargar la imagen: {image_path}")
+                                continue
+                            original_h, original_w = original_img.shape[:2]
+                        except Exception as e:
+                            print(f"ERROR al cargar {image_path}: {e}")
+                            continue
+
+                        # 6. Obtener matriz de transformación inversa
+                        # Mapea desde el espacio de la red (192x256) al espacio de la imagen original
+                        trans_inversa = get_affine_transform(
+                            center, scale, 0, (net_input_w, net_input_h), inv=True
+                        )
+
+                        # 7. Redimensionar el heatmap (H, W) al tamaño de entrada de la red (H, W)
+                        # cv2.resize espera dsize como (W, H)
+                        heatmap_redimensionado = cv2.resize(
+                            heatmap_agg,
+                            (net_input_w, net_input_h),  # (W, H)
+                            interpolation=cv2.INTER_LINEAR
+                        )
+
+                        # 8. Deformar (Warp) el heatmap reescalado para que encaje en la imagen original
+                        # dsize también es (W, H)
+                        heatmap_final_en_original = cv2.warpAffine(
+                            heatmap_redimensionado,
+                            trans_inversa,
+                            (original_w, original_h),  # (W, H) de la imagen de salida
+                            flags=cv2.INTER_LINEAR
+                        )
+
+                        # --- Visualización ---
+
+                        # 9. Normalizar y colorear el heatmap
+                        heatmap_norm = cv2.normalize(
+                            heatmap_final_en_original, None, 0, 255, cv2.NORM_MINMAX
+                        )
+                        heatmap_norm = heatmap_norm.astype(np.uint8)
+                        heatmap_color = cv2.applyColorMap(heatmap_norm, cv2.COLORMAP_JET)
+
+                        # 10. Mezclar la imagen original y el heatmap
+                        alpha = 0.6
+                        overlay = cv2.addWeighted(original_img, 1 - alpha, heatmap_color, alpha, 0)
+
+                        # 11. Mostrar el resultado
+                        cv2.imshow('Heatmap Overlay', overlay)
+
+                        print(f"Mostrando: {image_path}")
+
+                        key = cv2.waitKey(0) & 0xFF
+                        if key == ord('q'):
+                            print("Saliendo de la visualización...")
+                            cv2.destroyAllWindows()
+                            return  # Salir completamente de la función
+                        elif key == ord('n'):
+                            continue  # Ir a la siguiente imagen
+
+                    # Permitir salir con 'q' entre batches también
+                    if (cv2.waitKey(1) & 0xFF) == ord('q'):
+                        break
+
+                cv2.destroyAllWindows()
+                print("IMASHRIMP: Fin de la visualización de heatmaps.")
+
+            # Heatmap overlap to images debugging--------------------------------------------
+            debug_heatmaps(outputs, dataset, test_loader_cfg, data_cfg=self.cfg.data.test.data_cfg)
+            #--------------------------------------------------------------------------------
+
+
+
             rank, _ = get_dist_info()
             eval_config = self.cfg.get('evaluation', {})
             eval_config = merge_configs(eval_config, dict(metric=self.args.eval))
@@ -429,10 +569,14 @@ class TrainingEngine:
                 if self.args.out:
                     print(f'\nwriting results to {self.args.out}')
                     mmcv.dump(outputs, self.args.out)
+
                 results = dataset.evaluate(outputs, self.cfg.work_dir, err_dis=True, **eval_config)
                 pd_mae, gt_mae = create_test_quantitative_results(outputs, dataset, checkpoint_name, self.cfg, external_test=external)
-                #propuesta n2 if self.args.predict_images and not complete:
-                #     create_test_qualitative_images(outputs, dataset, checkpoint_name, self.cfg)
+                #propuesta n2
+                # if self.args.predict_images and not complete:
+                if True:
+                    create_test_qualitative_images(outputs, dataset, checkpoint_name, self.cfg)
+
                 # del results['PCKdis']
                 results['mae_pd_rm'] = pd_mae
                 results['mae_gt_rm'] = gt_mae

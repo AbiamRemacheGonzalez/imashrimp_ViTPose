@@ -2,9 +2,7 @@ _base_ = [
     '../../../../_base_/default_runtime.py',
     '../../../../_base_/datasets/camaron.py'
 ]
-only_rgb = False
-vitpose_size = 'huge'  # options: small, base, large, huge
-
+only_rgb = True
 evaluation = dict(interval=1, metric=['PCK', 'PCKe', 'EPE', 'mAP'], save_best='PCK')
 
 optimizer = dict(
@@ -37,14 +35,6 @@ channel_cfg = dict(
 
 # model settings
 channels = 4 if not only_rgb else 3
-embed_dim_dict = {'huge': 1280, 'large': 1024, 'base': 768, 'small': 384}
-in_channels_dict = {'huge': 1280, 'large': 1024, 'base': 768, 'small': 384}
-depth_dict = {'huge': 32, 'large': 24, 'base': 12, 'small': 12}
-num_heads_dict = {'huge': 16, 'large': 16, 'base': 12, 'small': 12}
-embed_dim = embed_dim_dict[vitpose_size]
-in_channels = in_channels_dict[vitpose_size]
-depth = depth_dict[vitpose_size]
-num_heads = num_heads_dict[vitpose_size]
 model = dict(
     type='TopDown',
     pretrained=None,
@@ -53,9 +43,9 @@ model = dict(
         img_size=(256, 192),
         patch_size=16,
         in_chans=channels,
-        embed_dim=embed_dim,
-        depth=depth,
-        num_heads=num_heads,
+        embed_dim=1280,
+        depth=32,
+        num_heads=16,
         ratio=1,
         use_checkpoint=False,
         mlp_ratio=4,
@@ -64,7 +54,7 @@ model = dict(
     ),
     keypoint_head=dict(
         type='TopdownHeatmapSimpleHead',
-        in_channels=in_channels,
+        in_channels=1280,
         num_deconv_layers=2,
         num_deconv_filters=(256, 256),
         num_deconv_kernels=(4, 4),
@@ -147,20 +137,17 @@ view_info = "D:/1_SHRIMP_PROYECT/1_DATASET/2_ADITIONAL_INFO/shrimps_point_of_vie
 real_cm_data = "D:/1_SHRIMP_PROYECT/1_DATASET/2_ADITIONAL_INFO/ADITIONAL_INFO_MANAGER/output_information/real_cm_data.csv"
 conversion_model_dir = "C:/Users/Tecnico/Downloads/vitpose24102024/pixelconversor/conversor/searcher/models"
 
+# Custom cofiguration
 complete_analysis = True
-data_root = 'D:/1_SHRIMP_PROYECT/2_DATASET_MANAGEMENT/MULTIPLE_DATASET_MANAGEMENT/DATASETMANAGEMENT/results/shrimp_dataset_23KP_superior_2458_v0_2025_02_25'#shrimp_dataset_23KP_superior_1792_v0_2025_02_08'#shrimp_dataset_23KP_lateral_1121_v0_2025_01_20'
-
-
-ann_file_measure = f'{data_root}/annotations/real_measure.json'
-skeleton_order = [[1, 9], [2, 9], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [10, 11], [12, 13], [14, 15],
-                  [16, 17], [18, 19], [20, 21], [22, 23]]
-skeleton_name = ["total", "abdomen", "l_head", "l_1seg", "l_2seg", "l_3seg", "l_4seg", "l_5seg", "l_6seg", "w_head", "w_1seg", "w_2seg", "w_3seg", "w_4seg", "w_5seg", "w_6seg"]
+data_root = 'D:/1_SHRIMP_PROYECT/2_DATASET_MANAGEMENT/MULTIPLE_DATASET_MANAGEMENT/DATASETMANAGEMENT/results/complete_system/shrimp_dataset_complete_system_v0_2025_04_02/pose_estimation/shrimp_dataset_23KP_lateral_4277_v0_2025_04_02'#'D:/1_SHRIMP_PROYECT/2_DATASET_MANAGEMENT/MULTIPLE_DATASET_MANAGEMENT/DATASETMANAGEMENT/results/shrimp_dataset_23KP_lateral_4935_v0_2025_03_05'#shrimp_dataset_22KP_lateral_3699_v0_2025_02_07'#shrimp_dataset_23KP_lateral_1121_v0_2025_01_20'
+skeleton_order = [[1, 9], [2, 9], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [10, 11], [12, 13], [14, 15], [16, 17], [18, 19], [20, 21], [22, 23]]
+skeleton_name = ["total", "abdomen", "l_head", "l_1seg", "l_2seg", "l_3seg", "l_4seg", "l_5seg", "l_6seg", "h_head", "h_1seg", "h_2seg", "h_3seg", "h_4seg", "h_5seg", "h_6seg"]
 dataset_type = 'AnimalCamaronDatasetDeep' if not only_rgb else 'AnimalCamaronDataset'
 data = dict(
-    samples_per_gpu=8,  # 64
+    samples_per_gpu=8,
     workers_per_gpu=4,
-    val_dataloader=dict(samples_per_gpu=8),  # 32
-    test_dataloader=dict(samples_per_gpu=8),  # 32
+    val_dataloader=dict(samples_per_gpu=8),
+    test_dataloader=dict(samples_per_gpu=8),
     train=dict(
         type=dataset_type,
         ann_file=f'{data_root}/annotations/train_keypoints.json',
@@ -186,7 +173,7 @@ data = dict(
         pipeline=test_pipeline,
         dataset_info={{_base_.dataset_info}}),
     total=dict(
-        type='AnimalCamaronDatasetDeep',
+        type=dataset_type,
         ann_file=f'{data_root}/annotations/total_keypoints.json',
         img_prefix=f'{data_root}/images/total/',
         img_prefix_depth=f'{data_root}/depths/total/',

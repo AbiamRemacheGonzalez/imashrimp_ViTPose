@@ -1,4 +1,5 @@
 # Copyright (c) OpenMMLab. All rights reserved.
+import os.path
 import os.path as osp
 import tempfile
 import warnings
@@ -12,11 +13,11 @@ import matplotlib.pyplot as plt
 
 from ....core.post_processing import oks_nms, soft_oks_nms
 from ...builder import DATASETS
-from ..base import Kpt2dSviewRgbImgTopDownDataset
+from ..base import Kpt2dDeepSviewRgbImgTopDownDatasetCompact
 
 
 @DATASETS.register_module()
-class AnimalCamaronDataset(Kpt2dSviewRgbImgTopDownDataset):
+class AnimalCamaronDatasetDeepCompact(Kpt2dDeepSviewRgbImgTopDownDatasetCompact):
     """Camaron dataset for animal pose estimation.
 
     "Camaron:"
@@ -75,6 +76,7 @@ class AnimalCamaronDataset(Kpt2dSviewRgbImgTopDownDataset):
         super().__init__(
             ann_file,
             img_prefix,
+            img_prefix_depth,
             data_cfg,
             pipeline,
             dataset_info=dataset_info,
@@ -160,8 +162,10 @@ class AnimalCamaronDataset(Kpt2dSviewRgbImgTopDownDataset):
             center, scale = self._xywh2cs(*obj['clean_bbox'][:4], padding=1.0)
 
             image_file = osp.join(self.img_prefix, self.id2name[img_id])
+            depth_file = osp.join(self.img_prefix_depth, self.id2depthname[img_id])
             rec.append({
                 'image_file': image_file,
+                'depth_file': depth_file,
                 'center': center,
                 'scale': scale,
                 'bbox': obj['clean_bbox'][:4],
@@ -177,7 +181,7 @@ class AnimalCamaronDataset(Kpt2dSviewRgbImgTopDownDataset):
         return rec
 
     @deprecated_api_warning(name_dict=dict(outputs='results'))
-    def evaluate(self, results, res_folder=None, metric='PCK', err_dis=False, **kwargs):
+    def evaluate(self, results, res_folder=None, multiple=False, metric='PCK', err_dis=False, **kwargs):
         """Evaluate Fly keypoint results. The pose prediction results will be
         saved in ``${res_folder}/result_keypoints.json``.
 
@@ -205,6 +209,31 @@ class AnimalCamaronDataset(Kpt2dSviewRgbImgTopDownDataset):
         Returns:
             dict: Evaluation results for evaluation metric.
         """
+
+        # def find_dict_by_param(lis, key, param):
+        #     for dic in lis:
+        #         if dic.get(key) == param:
+        #             return dic
+        #     return None
+        #
+        # if multiple:
+        #     for result in results:
+        #         preds = result['preds']
+        #         image_paths = result['image_paths']
+        #         batch_size = len(image_paths)
+        #         for i in range(batch_size):
+        #             image_name = os.path.basename(image_paths[i])
+        #             image_dic = find_dict_by_param(self.coco.dataset['images'], 'file_name', image_name)
+        #             H, W = (1080, 1920)
+        #             h = image_dic['height']
+        #             w = image_dic['width']
+        #             top = (H - h) // 2
+        #             left = (W - w) // 2
+        #             preds[i][:, 0] -= left  # X
+        #             preds[i][:, 1] -= top
+        #             preds[i][:, 0] = np.clip(preds[i][:, 0], 0, w - 1)
+        #             preds[i][:, 1] = np.clip(preds[i][:, 1], 0, h - 1)
+
         metrics = metric if isinstance(metric, list) else [metric]
         allowed_metrics = ['mAP', 'PCK', 'PCKe', 'AUC', 'EPE']
         for metric in metrics:
@@ -225,10 +254,12 @@ class AnimalCamaronDataset(Kpt2dSviewRgbImgTopDownDataset):
             boxes = result['boxes']
             image_paths = result['image_paths']
             bbox_ids = result['bbox_ids']
+            # real_measures = result['image_real_measures']
 
             batch_size = len(image_paths)
             for i in range(batch_size):
                 image_id = self.name2id[image_paths[i][len(self.img_prefix):]]
+                image_name = os.path.basename(image_paths[i])
 
                 kpts.append({
                     'keypoints': preds[i].tolist(),
@@ -237,7 +268,8 @@ class AnimalCamaronDataset(Kpt2dSviewRgbImgTopDownDataset):
                     'area': float(boxes[i][4]),
                     'score': float(boxes[i][5]),
                     'image_id': image_id,
-                    'bbox_id': bbox_ids[i]
+                    'bbox_id': bbox_ids[i],
+                    # 'real_measure_factor': real_measures[image_name]
                 })
                 kpts_1[image_id].append({
                     'keypoints': preds[i],
@@ -246,7 +278,8 @@ class AnimalCamaronDataset(Kpt2dSviewRgbImgTopDownDataset):
                     'area': boxes[i][4],
                     'score': boxes[i][5],
                     'image_id': image_id,
-                    'bbox_id': bbox_ids[i]
+                    'bbox_id': bbox_ids[i],
+                    # 'real_measure_factor': real_measures[image_name]
                 })
         # kpts = self._sort_and_unique_bboxes(kpts)
         kpts_1 = self._sort_and_unique_bboxes_dict(kpts_1)
@@ -281,31 +314,6 @@ class AnimalCamaronDataset(Kpt2dSviewRgbImgTopDownDataset):
 
         self._write_keypoint_results(kpts, res_file)
         info_str = self._report_metric(res_file, metrics, pck_thr=0.01, pcke_thr=10)
-
-
-        if err_dis:
-            e = info_str[10]
-            f = info_str[10][1]
-            fig, axs = plt.subplots(23, 1, figsize=(6, 60))
-            # Iterar sobre cada entrada del tensor y generar una gráfica para cada una
-            for i, entrada in enumerate(info_str[10][1]):
-                # Calcular la distribución para la entrada actual
-                frecuencias, bins = np.histogram(entrada, bins=40, density=True)
-
-                # Graficar la distribución para la entrada actual en el subgráfico correspondiente
-                axs[i].plot(bins[:-1], frecuencias)
-
-                # Etiquetas y título para cada subgráfico
-                axs[i].set_xlabel('Valor Error')
-                axs[i].set_ylabel('Densidad')
-                axs[i].set_title(f'Punto {i + 1}')
-
-            # Ajustar el espaciado entre subgráficos
-            plt.tight_layout()
-
-            # Mostrar todas las gráficas juntas
-            plt.show()
-        info_str = [tupla for tupla in info_str if tupla[0] != "PCKdis"]
         name_value = OrderedDict(info_str)
 
         self._write_coco_keypoint_results(valid_kpts, res_file)
@@ -315,7 +323,7 @@ class AnimalCamaronDataset(Kpt2dSviewRgbImgTopDownDataset):
         if tmp_folder is not None:
             tmp_folder.cleanup()
         name_value.update(name_value_1)
-        return name_value
+        return name_value, results
 
     def _write_coco_keypoint_results(self, keypoints, res_file):
         """Write results into a json file."""
@@ -326,7 +334,7 @@ class AnimalCamaronDataset(Kpt2dSviewRgbImgTopDownDataset):
             'ann_type': 'keypoints',
             'keypoints': keypoints
         } for cls_ind, cls in enumerate(self.classes)
-                     if not cls == '__background__']
+            if not cls == '__background__']
 
         results = self._coco_keypoint_results_one_category_kernel(data_pack[0])
 

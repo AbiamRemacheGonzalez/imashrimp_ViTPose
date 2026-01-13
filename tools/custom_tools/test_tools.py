@@ -175,7 +175,7 @@ def create_test_qualitative_images(
 
     gt_config = get_general_config(cfg.skeleton_order, cfg.skeleton_name)
     pd_config = get_general_config(cfg.skeleton_order, cfg.skeleton_name, mode=1)
-
+    predictions_in_cm = pd.read_csv(os.path.join(args_out_img_root, "predictions_converted_in_cm.csv"))
     with tqdm(total=len(coco.anns)) as pbar:
         for batch_item in outputs:
             for idx in range(len(batch_item['image_paths'])):
@@ -207,6 +207,11 @@ def create_test_qualitative_images(
                 pd_config['bbox_name'] = get_bbox_name(image_name, ros_dict, view_dict)
 
                 image_np = cv2.imread(os.path.join(args_img_root, image_name))
+                if image_np is None:
+                    # Probar a leer si tiene una dirección dentro.
+                    with open(os.path.join(args_img_root, image_name), "r", encoding="utf-8") as f:
+                        real_path = f.readline()
+                    image_np = cv2.imread(real_path)
 
                 out_file = os.path.join(args_out_img_root, 'combined', f'{image_name[:-4]}_test_comb.jpg')
                 out_file_pred_complete = os.path.join(os.path.join(args_out_img_root, "predictions_complete"),
@@ -357,10 +362,10 @@ def create_test_quantitative_results(outputs, dataset, checkpoint_name, cfg, onl
 
         save_distances_with_model_conversion(pd_dis_pix, skeleton_names, img_codes, img_apa, img_apv, os.path.join(args_out_img_root, f'predictions_converted_in_cm.csv'), cfg.model_add)
         save_distances_with_model_conversion(gt_dis_pix, skeleton_names, img_codes, img_apa, img_apv, os.path.join(args_out_img_root, f'ground_truth_converted_in_cm.csv'), cfg.model_add)
-        save_distances_zipping_by_mean(os.path.join(args_out_img_root, f'predictions_converted_in_cm.csv'), os.path.join(args_out_img_root, f'predictions_converted_in_cm_mean.csv'))
-        save_distances_zipping_by_mean(os.path.join(args_out_img_root, f'ground_truth_converted_in_cm.csv'), os.path.join(args_out_img_root, f'ground_truth_converted_in_cm_mean.csv'))
-        save_distances_zipping_by_median(os.path.join(args_out_img_root, f'predictions_converted_in_cm.csv'), os.path.join(args_out_img_root, f'predictions_converted_in_cm_median.csv'))
-        save_distances_zipping_by_median(os.path.join(args_out_img_root, f'ground_truth_converted_in_cm.csv'), os.path.join(args_out_img_root, f'ground_truth_converted_in_cm_median.csv'))
+        save_distances_zipping_by_mean(os.path.join(args_out_img_root, f'predictions_converted_in_cm.csv'), os.path.join(args_out_img_root, f'predictions_converted_in_cm_mean.csv'), mask=dis_availability)
+        save_distances_zipping_by_mean(os.path.join(args_out_img_root, f'ground_truth_converted_in_cm.csv'), os.path.join(args_out_img_root, f'ground_truth_converted_in_cm_mean.csv'), mask=dis_availability)
+        save_distances_zipping_by_median(os.path.join(args_out_img_root, f'predictions_converted_in_cm.csv'), os.path.join(args_out_img_root, f'predictions_converted_in_cm_median.csv'), mask=dis_availability)
+        save_distances_zipping_by_median(os.path.join(args_out_img_root, f'ground_truth_converted_in_cm.csv'), os.path.join(args_out_img_root, f'ground_truth_converted_in_cm_median.csv'), mask=dis_availability)
 
         comparer = PopulationComparerByView(args_out_img_root, cfg.real_cm_data, cfg.rostrum_info)
         pd_res, pd_res_latex, base_fil, pd_mae_general = comparer.generate_comparison_current("predictions_converted_in_cm.csv", mask=dis_availability)
@@ -370,13 +375,11 @@ def create_test_quantitative_results(outputs, dataset, checkpoint_name, cfg, onl
         base_fil.to_csv(os.path.join(args_out_img_root, "rm_in_cm.csv"), index=False)
 
         comparer = PopulationComparerByView(args_out_img_root, cfg.real_cm_data, cfg.rostrum_info)
-        gt_res, gt_res_latex, base_fil, gt_mae_general = comparer.generate_comparison_current(
-            'ground_truth_converted_in_cm.csv')
+        gt_res, gt_res_latex, base_fil, gt_mae_general = comparer.generate_comparison_current('ground_truth_converted_in_cm.csv', mask=dis_availability)
         gt_res.to_csv(os.path.join(args_out_img_root, f'rm_gt_in_cm_compare.csv'), index=False)
 
         comparer = PopulationComparerByView(args_out_img_root, cfg.real_cm_data, cfg.rostrum_info)
-        res, gt_res_latex, base_fil, gt_mae_general = comparer.generate_comparison_current(
-            'predictions_converted_in_cm_mean.csv')
+        res, gt_res_latex, base_fil, gt_mae_general = comparer.generate_comparison_current('predictions_converted_in_cm_mean.csv')
         res.to_csv(os.path.join(args_out_img_root, f'rm_pd_mean_in_cm_compare.csv'), index=False)
 
         comparer = PopulationComparerByView(args_out_img_root, cfg.real_cm_data, cfg.rostrum_info)
@@ -394,6 +397,10 @@ def create_test_quantitative_results(outputs, dataset, checkpoint_name, cfg, onl
             'ground_truth_converted_in_cm_median.csv')
         gt_res.to_csv(os.path.join(args_out_img_root, f'rm_gt_median_in_cm_compare.csv'), index=False)
     if external_test:
+        kps_info_gt = create_kps_dataframe(raw_info_gt, img_codes, img_apa, img_apv)
+        kps_info_gt.to_csv(os.path.join(args_out_img_root, f'keypoints_ground_truth.csv'), index=False)
+        kps_info_pd = create_kps_dataframe(raw_info_pd, img_codes, img_apa, img_apv)
+        kps_info_pd.to_csv(os.path.join(args_out_img_root, f'keypoints_predictions.csv'), index=False)
         np.save(os.path.join(args_out_img_root, f'raw_pix_gt.npy'), raw_info_gt)
         np.save(os.path.join(args_out_img_root, f'raw_pix_pd.npy'), raw_info_pd)
 
@@ -408,25 +415,53 @@ def create_test_quantitative_results(outputs, dataset, checkpoint_name, cfg, onl
     return pd_mae_general, gt_mae_general
 
 
-def save_distances_zipping_by_mean(file, out_file):
+def create_kps_dataframe(raw_info, img_codes, img_apa, img_apv):
+    num_samples, num_kp, _ = raw_info.shape
+    data_for_df = []
+    for sample_data in raw_info:
+        row = {}
+        for i in range(num_kp):
+            x = sample_data[i, 0]
+            y = sample_data[i, 1]
+            column_name = f'{i + 1}'
+            row[column_name] = (x, y)
+        data_for_df.append(row)
+    keypoints_pd = pd.DataFrame(data_for_df)
+    keypoints_pd['code'] = img_codes
+    keypoints_pd['angle'] = img_apa
+    keypoints_pd['point_of_view'] = img_apv
+    return keypoints_pd
+
+
+def save_distances_zipping_by_mean(file, out_file, mask=None):
     df = pd.read_csv(file)
-    subdf = df[['angle', 'point_of_view']]
-    df = df.drop(['angle', 'point_of_view'], axis=1)
-    mcl_df = df.groupby('code').mean().reset_index()
+    if mask is not None:
+        # Poner a Nan aquellos valores que no tenemos GT disponible. Solo medidas seguras.
+        df_3 = df.iloc[:, :3]
+        df_16 = df.iloc[:, 3:]
+        mask_bool = pd.DataFrame(mask == 1, index=df_16.index, columns=df_16.columns)
+        df_16_masked = df_16.where(mask_bool, np.nan)
+        df = pd.concat([df_3, df_16_masked], axis=1)
+    df = df.drop('angle', axis=1)
+    df['point_of_view'] = df['point_of_view'].replace(['LL', 'LR'], 'LL')
+    mcl_df = df.groupby(['code', 'point_of_view']).mean(numeric_only=True).reset_index()
     mcl_df['angle'] = 0
-    pov = subdf['point_of_view'].values[0]
-    mcl_df['point_of_view'] = pov
     mcl_df.to_csv(out_file, index=False)
 
 
-def save_distances_zipping_by_median(file, out_file):
+def save_distances_zipping_by_median(file, out_file, mask=None):
     df = pd.read_csv(file)
-    subdf = df[['angle', 'point_of_view']]
-    df = df.drop(['angle', 'point_of_view'], axis=1)
-    mcl_df = df.groupby('code').median().reset_index()
+    if mask is not None:
+        # Poner a Nan aquellos valores que no tenemos GT disponible. Solo medidas seguras.
+        df_3 = df.iloc[:, :3]
+        df_16 = df.iloc[:, 3:]
+        mask_bool = pd.DataFrame(mask == 1, index=df_16.index, columns=df_16.columns)
+        df_16_masked = df_16.where(mask_bool, np.nan)
+        df = pd.concat([df_3, df_16_masked], axis=1)
+    df = df.drop('angle', axis=1)
+    df['point_of_view'] = df['point_of_view'].replace(['LL', 'LR'], 'LL')
+    mcl_df = df.groupby(['code', 'point_of_view']).median(numeric_only=True).reset_index()
     mcl_df['angle'] = 0
-    pov = subdf['point_of_view'].values[0]
-    mcl_df['point_of_view'] = pov
     mcl_df.to_csv(out_file, index=False)
 
 
@@ -483,6 +518,8 @@ def save_distances_with_model_conversion(dis, skeleton_names, img_codes, img_apa
 def convert_all_columns(skeleton_names, df_pix, df_cm, conversor, view):
     out = []
     for col in skeleton_names:
+        if col == "w_6seg":
+            print("")
         if (col == 'total' or col == 'l_head') and are_two_generations(df_pix):
             cod = col + "_1_" + view
             X = df_pix[[col + "_1"]].copy()
@@ -513,7 +550,7 @@ def convert_all_columns(skeleton_names, df_pix, df_cm, conversor, view):
             X.columns = [col + "_pix"]
             if X.isnull().all().all():
                 continue
-            df_cm[col] = conversor.predict_by_model(cod, X)
+            df_cm[col] = np.array(conversor.predict_by_model(cod, X))
             outliers = detectar_outliers(df_cm, df_pix, col)
             out.append(outliers)
     return out
@@ -598,6 +635,9 @@ def detectar_outliers(df_cm, df_pix, columna):
     Q3 = df[columna].quantile(0.75)
     IQR = Q3 - Q1
 
+    if IQR == 0:
+        return pd.DataFrame(columns=list(df.columns))
+
     limite_inferior = Q1 - 5 * IQR  # 38
     limite_superior = Q3 + 5 * IQR  # 40
 
@@ -646,7 +686,10 @@ def save_gt_pd_compare_metrics(ground_truth, predictions, out_file):
         epe = np.mean(distances)
         stddev_epe = np.std(distances)
         # Guardar los resultados en un diccionario
-        num = i + 1 if ground_truth.shape[1] == 23 else i + 2
+        if ground_truth.shape[1] == 23 or ground_truth.shape[1] == 37:
+            num = i + 1
+        elif ground_truth.shape[1] == 22:
+            num = i + 2
         results_list.append({
             'Point': f'{num}',
             'MAE': mae,
@@ -785,20 +828,163 @@ def get_image_with_key_points(image_np, cfg, zoom=None):
     return cp_image
 
 
-def set_key_points_and_joints(image, cfg):
+def set_key_points_and_joints_old(image, cfg):
     idx = 0
     cm_info = cfg['cm_info']
     for union in cfg['skeleton']:
         if union == [1, 9] or union == [2, 9]:
+            idx += 1
             continue
         point1 = [int(valor) for valor in cfg['keypoints'][union[0] - 1]]
         point2 = [int(valor) for valor in cfg['keypoints'][union[1] - 1]]
         column = cfg['skeleton_names'][idx]
         joint_text = str(round(cm_info[column].values[0], 1)) if cm_info[column].values else "nan"
-        image = draw_joint(image, point1, point2, joint_text, cfg['circle_color'], cfg['circle_size'],
+        image = draw_joint_with_text(image, point1, point2, joint_text, cfg['circle_color'], cfg['circle_size'],
                            cfg['joint_line_color'], cfg['joint_line_width'], cfg['joint_text_font'],
                            cfg['joint_text_font_thickness'], cfg['joint_text_font_scale'])
         idx += 1
+
+
+def set_key_points_and_joints(image, cfg):
+    """
+    rotation_mask: Lista de 0s y 1s con la misma longitud que las uniones válidas.
+                   0 = Texto paralelo a la línea (Normal).
+                   1 = Texto rotado 90 grados (Perpendicular).
+    """
+    rotation_mask = [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1]
+    idx = 0
+    cm_info = cfg['cm_info']
+
+    # Aseguramos que la máscara tenga longitud suficiente para evitar errores
+    # Si no se pasa máscara, asumimos todo 0
+    if not rotation_mask:
+        rotation_mask = [0] * len(cfg['skeleton'])
+
+    for union in cfg['skeleton']:
+        # Saltamos las uniones excluidas (según tu lógica original)
+        if union == [1, 9] or union == [2, 9]:
+            # Nota: No incrementamos idx aquí porque idx parece rastrear
+            # las uniones VÁLIDAS dibujadas, no las del esqueleto total.
+            # (Ajusta esto si tu idx debe coincidir con el esqueleto completo)
+            idx += 1
+            continue
+
+        point1 = [int(valor) for valor in cfg['keypoints'][union[0] - 1]]
+        point2 = [int(valor) for valor in cfg['keypoints'][union[1] - 1]]
+        column = cfg['skeleton_names'][idx]
+
+        joint_text = str(round(cm_info[column].values[0], 1)) if cm_info[column].values else "nan"
+
+        # Obtenemos el valor de la máscara para esta unión actual
+        # Usamos try/except o un índice seguro por si la máscara es más corta
+        should_rotate_90 = False
+        if idx < len(rotation_mask):
+            should_rotate_90 = (rotation_mask[idx] == 1)
+
+        image = draw_joint_with_text(
+            image, point1, point2, joint_text,
+            cfg['circle_color'], cfg['circle_size'],
+            cfg['joint_line_color'], cfg['joint_line_width'],
+            cfg['joint_text_font'], cfg['joint_text_font_thickness'],
+            cfg['joint_text_font_scale'],
+            rotate_90=should_rotate_90  # <--- Nuevo argumento
+        )
+        idx += 1
+    return image
+
+
+def draw_joint_with_text(img, p1, p2, joint_text, circle_color, circle_size, line_color, line_width, text_font,
+                         text_thickness, text_font_scale, rotate_90=False):
+    # Dibujar línea
+    cv2.line(img, p1, p2, line_color, line_width)
+
+    # Dibujar círculos
+    cv2.circle(img, p1, circle_size, (0, 0, 0), -1)
+    cv2.circle(img, p1, circle_size - 2, circle_color, -1)
+
+    cv2.circle(img, p2, circle_size, (0, 0, 0), -1)
+    cv2.circle(img, p2, circle_size - 2, circle_color, -1)
+
+    # Calcular punto medio
+    mid_x = int((p1[0] + p2[0]) / 2)
+    mid_y = int((p1[1] + p2[1]) / 2)
+
+    # Calcular ángulo de la línea
+    angle_rad = math.atan2(p2[1] - p1[1], p2[0] - p1[0])
+    angle_deg = math.degrees(angle_rad)
+
+    # Obtener tamaño del texto
+    (text_w, text_h), baseline = cv2.getTextSize(joint_text, text_font, text_font_scale, text_thickness)
+
+    # --- LÓGICA DE ROTACIÓN ---
+    # Si rotate_90 es True, sumamos 90 grados al ángulo invertido.
+    # Si es False, seguimos la línea.
+    # El negativo (-angle_deg) es porque el eje Y en imágenes va hacia abajo.
+    rotation_angle = -angle_deg + (90 if rotate_90 else 0)
+
+    # --- CALCULO DE OFFSET (Desplazamiento) ---
+    # Ajustamos la distancia del texto a la línea.
+    # Si el texto está a 90 grados, necesitamos alejarlo un poco más (mitad de su altura visual + margen)
+    distancia_base = 5
+    if rotate_90:
+        # Si rotamos 90, el ancho del texto se convierte en altura visual
+        offset_val = - (distancia_base + text_w // 2)
+    else:
+        offset_val = - (distancia_base + text_h)
+
+    dx = offset_val * math.sin(angle_rad)
+    dy = -offset_val * math.cos(angle_rad)  # Nota: signo cambiado para corrección perpendicular
+
+    text_pos = (int(mid_x + dx), int(mid_y + dy))
+
+    # --- CREAR LIENZO SEGURO (Diagonal) ---
+    # Usamos la diagonal para asegurar que el texto quepa al rotar cualquier ángulo
+    diag = int(math.sqrt(text_w ** 2 + text_h ** 2)) + 10
+    text_img = np.zeros((diag, diag, 3), dtype=np.uint8)
+
+    # Centrar texto en el lienzo temporal
+    text_x = (diag - text_w) // 2
+    text_y = (diag + text_h) // 2
+
+    # Dibujar texto (blanco solido, sin borde negro por ahora según tu código original,
+    # pero puedes usar putText dos veces si quieres borde)
+    cv2.putText(text_img, joint_text, (text_x, text_y), text_font, text_font_scale, (255, 255, 255), text_thickness,
+                cv2.LINE_AA)
+
+    # Rotar el lienzo
+    rot_mat = cv2.getRotationMatrix2D((diag // 2, diag // 2), rotation_angle, 1.0)
+    rotated_text = cv2.warpAffine(text_img, rot_mat, (diag, diag), flags=cv2.INTER_LINEAR,
+                                  borderMode=cv2.BORDER_CONSTANT, borderValue=(0, 0, 0))
+
+    # --- SUPERPOSICIÓN (Overlay) ---
+    x_c, y_c = text_pos
+    h_r, w_r = rotated_text.shape[:2]
+
+    # Coordenadas top-left donde pegar
+    x1 = x_c - w_r // 2
+    y1 = y_c - h_r // 2
+    x2 = x1 + w_r
+    y2 = y1 + h_r
+
+    # Recortes seguros
+    x1_c, x2_c = max(0, x1), min(img.shape[1], x2)
+    y1_c, y2_c = max(0, y1), min(img.shape[0], y2)
+
+    if y1_c < y2_c and x1_c < x2_c:
+        roi = img[y1_c:y2_c, x1_c:x2_c]
+
+        # Recorte correspondiente en la imagen de texto rotado
+        txt_roi = rotated_text[y1_c - y1: y2_c - y1, x1_c - x1: x2_c - x1]
+
+        # Máscara simple (lo que no sea negro es texto)
+        gray_txt = cv2.cvtColor(txt_roi, cv2.COLOR_BGR2GRAY)
+        _, mask = cv2.threshold(gray_txt, 1, 255, cv2.THRESH_BINARY)
+
+        # Pegar usando la máscara
+        roi[mask > 0] = txt_roi[mask > 0]
+        img[y1_c:y2_c, x1_c:x2_c] = roi
+
+    return img
 
 
 def draw_joint(img, p1, p2, joint_text, circle_color, circle_size, line_color, line_width, text_font, text_thickness,
@@ -814,7 +1000,7 @@ def draw_joint(img, p1, p2, joint_text, circle_color, circle_size, line_color, l
     return img
 
 
-def draw_joint_with_text(img, p1, p2, joint_text, circle_color, circle_size, line_color, line_width, text_font,
+def draw_joint_with_text_old(img, p1, p2, joint_text, circle_color, circle_size, line_color, line_width, text_font,
                          text_thickness, text_font_scale):
     # Dibujar línea
     cv2.line(img, p1, p2, line_color, line_width)
@@ -917,7 +1103,126 @@ def get_bounding_box(puntos_clave):
     return x_min, y_min, ancho, alto
 
 
-def get_dis_err_image(image, gt_keypoint, pd_keypoint, zoom=None, args_radius=5, args_line_width=2):
+def put_rotated_text_old(img, text, pos, angle, font, scale, color, thickness):
+    """
+    Dibuja texto rotado en una imagen.
+    """
+    # 1. Calcular el tamaño del texto
+    text_size, baseline = cv2.getTextSize(text, font, scale, thickness)
+    w, h = text_size
+
+    # 2. Crear una imagen temporal (canvas) lo suficientemente grande
+    # La diagonal asegura que el texto quepa al rotar
+    diag = int(np.sqrt(w ** 2 + h ** 2)) + 10
+    # Imagen transparente (o negra para usar máscaras)
+    txt_img = np.zeros((diag, diag, 3), dtype=np.uint8)
+
+    # 3. Dibujar el texto centrado en el canvas
+    txt_x = (diag - w) // 2
+    txt_y = (diag + h) // 2
+    cv2.putText(txt_img, text, (txt_x, txt_y), font, scale, color, thickness)
+
+    # 4. Rotar el canvas
+    M = cv2.getRotationMatrix2D((diag // 2, diag // 2), angle, 1.0)
+    rotated_txt = cv2.warpAffine(txt_img, M, (diag, diag))
+
+    # 5. Calcular dónde pegar el texto en la imagen original
+    x_offset = pos[0] - diag // 2
+    y_offset = pos[1] - diag // 2
+
+    y1, y2 = y_offset, y_offset + diag
+    x1, x2 = x_offset, x_offset + diag
+
+    # Recortes para asegurar que no nos salimos de la imagen
+    y1_c, y2_c = max(0, y1), min(img.shape[0], y2)
+    x1_c, x2_c = max(0, x1), min(img.shape[1], x2)
+
+    # Si el texto se sale completamente, no hacer nada
+    if y1_c >= y2_c or x1_c >= x2_c:
+        return
+
+    # Extraer la región de interés (ROI) de la imagen original
+    roi = img[y1_c:y2_c, x1_c:x2_c]
+
+    # Extraer la región correspondiente del texto rotado
+    txt_roi = rotated_txt[y1_c - y1: y2_c - y1, x1_c - x1: x2_c - x1]
+
+    # 6. Crear máscara para pegar solo el texto (ignorar el fondo negro)
+    gray_txt = cv2.cvtColor(txt_roi, cv2.COLOR_BGR2GRAY)
+    _, mask = cv2.threshold(gray_txt, 1, 255, cv2.THRESH_BINARY)
+    mask_inv = cv2.bitwise_not(mask)
+
+    # Combinar fondo y texto
+    img_bg = cv2.bitwise_and(roi, roi, mask=mask_inv)
+    txt_fg = cv2.bitwise_and(txt_roi, txt_roi, mask=mask)
+    dst = cv2.add(img_bg, txt_fg)
+
+    # Aplicar cambios
+    img[y1_c:y2_c, x1_c:x2_c] = dst
+
+
+def put_rotated_text_with_outline(img, text, pos, angle, font, scale, color, thickness, outline_color=None, outline_thickness=None):
+    """
+    Dibuja texto rotado en una imagen, con soporte para contorno.
+    """
+    # Usamos el grosor del contorno (si existe) para calcular el tamaño total necesario
+    th_for_size = outline_thickness if outline_thickness is not None else thickness
+    text_size, baseline = cv2.getTextSize(text, font, scale, th_for_size)
+    w, h = text_size
+
+    # Lienzo temporal suficientemente grande
+    diag = int(np.sqrt(w ** 2 + h ** 2)) + 20
+    # Fondo negro (se usará como transparente)
+    txt_img = np.zeros((diag, diag, 3), dtype=np.uint8)
+
+    # Coordenadas para centrar el texto en el lienzo
+    txt_x = (diag - w) // 2
+    txt_y = (diag + h) // 2
+
+    # --- DIBUJO EN EL LIENZO TEMPORAL ---
+    # 1. Si hay contorno, se dibuja primero (más grueso)
+    if outline_color is not None and outline_thickness is not None:
+        # Usamos LINE_AA para bordes más suaves
+        cv2.putText(txt_img, text, (txt_x, txt_y), font, scale, outline_color, outline_thickness, cv2.LINE_AA)
+
+    # 2. Se dibuja el relleno principal (más fino) encima
+    cv2.putText(txt_img, text, (txt_x, txt_y), font, scale, color, thickness, cv2.LINE_AA)
+    # ------------------------------------
+
+    # Rotar el lienzo
+    M = cv2.getRotationMatrix2D((diag // 2, diag // 2), angle, 1.0)
+    rotated_txt = cv2.warpAffine(txt_img, M, (diag, diag))
+
+    # Calcular posición de pegado
+    x_offset = pos[0] - diag // 2
+    y_offset = pos[1] - diag // 2
+
+    y1, y2 = y_offset, y_offset + diag
+    x1, x2 = x_offset, x_offset + diag
+
+    # Recortes de seguridad
+    y1_c, y2_c = max(0, y1), min(img.shape[0], y2)
+    x1_c, x2_c = max(0, x1), min(img.shape[1], x2)
+
+    if y1_c >= y2_c or x1_c >= x2_c: return
+
+    roi = img[y1_c:y2_c, x1_c:x2_c]
+    txt_roi = rotated_txt[y1_c - y1: y2_c - y1, x1_c - x1: x2_c - x1]
+
+    # Máscara: todo lo que no sea negro puro en el lienzo rotado se considera texto
+    gray_txt = cv2.cvtColor(txt_roi, cv2.COLOR_BGR2GRAY)
+    # Umbral muy bajo para capturar incluso los bordes negros del antialiasing
+    _, mask = cv2.threshold(gray_txt, 1, 255, cv2.THRESH_BINARY)
+    mask_inv = cv2.bitwise_not(mask)
+
+    img_bg = cv2.bitwise_and(roi, roi, mask=mask_inv)
+    txt_fg = cv2.bitwise_and(txt_roi, txt_roi, mask=mask)
+    dst = cv2.add(img_bg, txt_fg)
+
+    img[y1_c:y2_c, x1_c:x2_c] = dst
+
+
+def get_dis_err_image_not_90(image, gt_keypoint, pd_keypoint, zoom=None, args_radius=5, args_line_width=2):
     dis_err_image = image.copy()
     p_key = np.expand_dims(np.array(pd_keypoint), axis=0)
     g_key = np.expand_dims(np.array(gt_keypoint), axis=0)
@@ -926,8 +1231,8 @@ def get_dis_err_image(image, gt_keypoint, pd_keypoint, zoom=None, args_radius=5,
     distances = _calc_distances(p_key, g_key, mask, th)
 
     font = cv2.FONT_HERSHEY_DUPLEX
-    font_scale = 0.4
-    font_thickness = 1
+    font_scale = 0.7
+    font_thickness = 2
     font_color = (255, 255, 255)
     for gtp, pdp, e in zip(gt_keypoint, pd_keypoint, distances):
         gtp = (int(gtp[0]), int(gtp[1]))
@@ -941,9 +1246,72 @@ def get_dis_err_image(image, gt_keypoint, pd_keypoint, zoom=None, args_radius=5,
                     font_thickness + 1)
         cv2.putText(dis_err_image, str(round(e[0], 2)), punto_medio, font, font_scale, font_color,
                     font_thickness)
+    if zoom:
+        dis_err_image = dis_err_image[zoom['y1']:zoom['y2'], zoom['x1']:zoom['x2'], :]
+    put_text_in_image(dis_err_image, "Error Distance (cm)")
+    err_m = str(round(np.mean(distances), 2))
+    err_me = str(round(np.median(distances), 2))
+    err_d = str(round(np.std(distances), 2))
+    put_text_in_image(dis_err_image, f"mean = {err_m}; median = {err_me}; std = {err_d}", pos=(10, 35), size=0.6,
+                      thickness=2)
+    return dis_err_image
+
+
+def get_dis_err_image(image, gt_keypoint, pd_keypoint, zoom=None, args_radius=5, args_line_width=2):
+    dis_err_image = image.copy()
+    p_key = np.expand_dims(np.array(pd_keypoint), axis=0)
+    g_key = np.expand_dims(np.array(gt_keypoint), axis=0)
+    mask = np.full((p_key.shape[0], p_key.shape[1]), True)
+    th = np.full((p_key.shape[0], p_key.shape[2]), 1)
+    distances = _calc_distances(p_key, g_key, mask, th)
+
+    font = cv2.FONT_HERSHEY_DUPLEX
+    font_scale = 0.8
+    font_thickness = 2
+    font_color = (255, 255, 255)  # Color del relleno (blanco)
+    outline_color = (0, 0, 0)  # Color del borde (negro)
+    # El borde debe ser sustancialmente más grueso que el relleno para que se vea
+    outline_thickness = font_thickness + 3
+
+    # Margen de separación entre la línea y el texto
+    margen_separacion = 15
+
+    for gtp, pdp, e in zip(gt_keypoint, pd_keypoint, distances):
+        gtp = (int(gtp[0]), int(gtp[1]))
+        pdp = (int(pdp[0]), int(pdp[1]))
+
+        cv2.line(dis_err_image, gtp, pdp, (253, 255, 117), 1 if args_line_width - 1 < 0 else args_line_width - 1)
+        cv2.circle(dis_err_image, gtp, args_radius, (255, 0, 0), -1)
+        cv2.circle(dis_err_image, pdp, args_radius, (0, 0, 255), -1)
+
+        punto_medio = ((gtp[0] + pdp[0]) // 2, (gtp[1] + pdp[1]) // 2)
+        texto_error = str(round(e[0], 2))
+
+        # Usamos el grosor del contorno para calcular el tamaño real que ocupará
+        (w_text, h_text), _ = cv2.getTextSize(texto_error, font, font_scale, outline_thickness)
+
+        # Calculamos el desplazamiento vertical para la posición (2)
+        offset_y = int(w_text / 2) + margen_separacion
+        punto_ajustado = (punto_medio[0], punto_medio[1] - offset_y)
+
+        # --- LLAMADA ÚNICA A LA NUEVA FUNCIÓN ---
+        put_rotated_text_with_outline(
+            dis_err_image,
+            texto_error,
+            punto_ajustado,
+            90,  # Ángulo
+            font,
+            font_scale,
+            font_color,  # Relleno blanco
+            font_thickness,  # Grosor relleno
+            outline_color,  # Borde negro
+            outline_thickness  # Grosor borde
+        )
+        # ----------------------------------------
 
     if zoom:
         dis_err_image = dis_err_image[zoom['y1']:zoom['y2'], zoom['x1']:zoom['x2'], :]
+
     put_text_in_image(dis_err_image, "Error Distance (cm)")
     err_m = str(round(np.mean(distances), 2))
     err_me = str(round(np.median(distances), 2))

@@ -73,6 +73,8 @@ def load_state_dict(module, state_dict, strict=False, logger=None):
     def load(module, prefix=''):
         # recursively check parallel module in case that the model has a
         # complicated structure, e.g., nn.Module(nn.Module(DDP))
+        if prefix == "backbone.cls_token":
+            print("")
         if is_module_wrapper(module):
             module = module.module
         local_metadata = {} if metadata is None else metadata.get(

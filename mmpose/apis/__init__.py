@@ -1,7 +1,7 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 from .inference import (inference_bottom_up_pose_model,
                         inference_top_down_pose_model, init_pose_model,
-                        process_mmdet_results, vis_pose_result)
+                        process_mmdet_results, vis_pose_result, inference_top_down_pose_model_for_IMASHRIMP, _inference_single_pose_model_for_imashrimp)
 from .inference_3d import (extract_pose_sequence, inference_interhand_3d_model,
                            inference_mesh_model, inference_pose_lifter_model,
                            vis_3d_mesh_result, vis_3d_pose_result)
@@ -18,5 +18,5 @@ __all__ = [
     'inference_pose_lifter_model', 'vis_3d_pose_result',
     'inference_interhand_3d_model', 'extract_pose_sequence',
     'inference_mesh_model', 'vis_3d_mesh_result', 'process_mmdet_results',
-    'init_random_seed', 'init_random_seed_for_search', 'train_model_for_search'#'lr_init_random_seed''lr_search',
+    'init_random_seed', 'init_random_seed_for_search', 'train_model_for_search', 'inference_top_down_pose_model_for_IMASHRIMP', '_inference_single_pose_model_for_imashrimp'#'lr_init_random_seed''lr_search',
 ]

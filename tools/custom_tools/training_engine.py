@@ -63,24 +63,32 @@ class TrainingEngine:
         # if self.cfg.complete_analysis:
         #     self.test(complete=True)
 
-    def external_test(self, source_dir, res_dir, view, nkp=None, old=False):
-        self.prepare_environment(old=old)
+    def external_test(self, source_dir, res_dir, view, nkp=None):
+        self.prepare_environment()
         self.preapare_conversion_model()
         listdir = os.listdir(self.args.work_dir)
         for dir in listdir:
             if "winner" in dir:
                 self.args.work_dir = os.path.join(self.args.work_dir, dir)
 
-        data_root = source_dir + f"/{view}" if nkp is None else source_dir + f"/{view}_{nkp}"
-        res_dir = res_dir + f"/{view}" if nkp is None else res_dir + f"/{view}_{nkp}"
+        for dir in os.listdir(source_dir):
+            if "annotations" in dir:
+                data_root = source_dir
+                res_dir = res_dir + "/compact_experiment"
+                break
+            else:
+                data_root = source_dir + f"/{view}" if nkp is None else source_dir + f"/{view}_{nkp}"
+                res_dir = res_dir + f"/{view}" if nkp is None else res_dir + f"/{view}_{nkp}"
+                break
+
         self.cfg.data_root = data_root
         self.cfg.data.test.ann_file = f'{data_root}/annotations/test_keypoints.json'
         self.cfg.data.test.img_prefix = f'{data_root}/images/test/'
         self.cfg.data.test.img_prefix_depth = f'{data_root}/depths/test/'
 
         self.cfg.work_dir = res_dir
-        data_dir = self.test(external=True)
-        return data_dir
+        data_dir, chk_path = self.test(external=True)
+        return data_dir, chk_path
 
     def prepare_environment(self, complete_system=False, old=False):
         dt_name = os.path.basename(self.cfg.data_root)
@@ -98,6 +106,9 @@ class TrainingEngine:
             # 2n proposal
             name = "experiment_" + splits[3]
             sub_dir = res_dir + "/" + splits[3] + "/" + name
+        if len(splits) == 2:
+            name = "compact_experiment"
+            sub_dir = res_dir + f"/{name}"
         self.args.work_dir = sub_dir
         self.cfg.work_dir = sub_dir
         create_dir(sub_dir)
@@ -323,8 +334,7 @@ class TrainingEngine:
             cfg_data = self.cfg.data.total
 
         for checkpoint in checkpoints:
-            checkpoint_name = os.path.basename(checkpoint)[
-                              :-4] if not complete else f"{os.path.basename(checkpoint)[:-4]}_complete"
+            checkpoint_name = os.path.basename(checkpoint)[:-4] if not complete else f"{os.path.basename(checkpoint)[:-4]}_complete"
             final_file = os.path.join(self.cfg.work_dir, "_test_quantitative_" + checkpoint_name + ".txt")
             if os.path.exists(final_file):
                 continue
@@ -408,7 +418,7 @@ class TrainingEngine:
                 outputs = single_gpu_test(model, data_loader)
                 fin = time.time()
                 tiempo_ejecucion = fin - inicio
-                # print(f"Tiempo de ejecución: {tiempo_ejecucion} segundos")
+                print(f"Tiempo de ejecución: {tiempo_ejecucion} segundos")
             else:
                 model = MMDistributedDataParallel(
                     model.cuda(),
@@ -432,7 +442,7 @@ class TrainingEngine:
                 results = dataset.evaluate(outputs, self.cfg.work_dir, err_dis=True, **eval_config)
                 pd_mae, gt_mae = create_test_quantitative_results(outputs, dataset, checkpoint_name, self.cfg, external_test=external)
                 #propuesta n2 if self.args.predict_images and not complete:
-                #     create_test_qualitative_images(outputs, dataset, checkpoint_name, self.cfg)
+                # create_test_qualitative_images(outputs, dataset, checkpoint_name, self.cfg)
                 del results['PCKdis']
                 results['mae_pd_rm'] = pd_mae
                 results['mae_gt_rm'] = gt_mae
@@ -441,6 +451,7 @@ class TrainingEngine:
 
         if external:
             check_dict = {}
+            path_dict = {}
             for checkpoint in checkpoints:
                 checkpoint_name = os.path.basename(checkpoint)[:-4]
                 file = os.path.join(self.cfg.work_dir, "_test_quantitative_" + checkpoint_name + ".txt")
@@ -449,7 +460,9 @@ class TrainingEngine:
                         if line.startswith('EPE:'):
                             valor_epe = float(line.split(':')[1].strip())
                             check_dict[checkpoint_name] = valor_epe
+                            path_dict[checkpoint] = valor_epe
                             break
 
             winner_checkpoint_name = min(check_dict, key=check_dict.get)
-            return os.path.join(self.cfg.work_dir, "_test_qualitative_" + winner_checkpoint_name)
+            winner_checkpoint_path = min(path_dict, key=path_dict.get)
+            return os.path.join(self.cfg.work_dir, "_test_qualitative_" + winner_checkpoint_name), winner_checkpoint_path

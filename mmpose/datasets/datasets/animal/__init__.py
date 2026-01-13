@@ -9,9 +9,10 @@ from .animal_pose_dataset import AnimalPoseDataset
 from .animal_zebra_dataset import AnimalZebraDataset
 from .animal_camaron_dataset import AnimalCamaronDataset
 from .animal_camaron_dataset_rgbd import AnimalCamaronDatasetDeep
+from .animal_camaron_dataset_rgbd_compact import AnimalCamaronDatasetDeepCompact
 
 __all__ = [
     'AnimalHorse10Dataset', 'AnimalMacaqueDataset', 'AnimalFlyDataset',
     'AnimalLocustDataset', 'AnimalZebraDataset', 'AnimalATRWDataset',
-    'AnimalPoseDataset', 'AnimalAP10KDataset', 'AnimalCamaronDataset', 'AnimalCamaronDatasetDeep'
+    'AnimalPoseDataset', 'AnimalAP10KDataset', 'AnimalCamaronDataset', 'AnimalCamaronDatasetDeep', 'AnimalCamaronDatasetDeepCompact'
 ]

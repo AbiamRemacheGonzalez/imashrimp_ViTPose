@@ -24,24 +24,12 @@ def single_gpu_test(model, data_loader):
     Returns:
         list: The prediction results.
     """
-
     model.eval()
     results = []
-    dataset = data_loader.dataset
-    # prog_bar = mmcv.ProgressBar(len(dataset))
     for data in data_loader:
-        inicio = time.perf_counter()
         with torch.no_grad():
             result = model(return_loss=False, **data)
         results.append(result)
-        fin = time.perf_counter()
-        # tiempo_ejecucion_ms = (fin - inicio) * 1000  # Convertimos a milisegundos
-        # print(f"Tiempo de ejecución: {tiempo_ejecucion_ms:.2f} milisegundos")
-
-        # use the first key as main key to calculate the batch size
-        # batch_size = len(next(iter(data.values())))
-        # for _ in range(batch_size):
-        #     prog_bar.update()
     return results
 
 

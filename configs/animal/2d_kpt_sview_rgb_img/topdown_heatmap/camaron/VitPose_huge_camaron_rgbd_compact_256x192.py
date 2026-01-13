@@ -1,15 +1,16 @@
 _base_ = [
     '../../../../_base_/default_runtime.py',
-    '../../../../_base_/datasets/camaron22kp.py'
+    '../../../../_base_/datasets/camaron_37KP.py'
 ]
+
 only_rgb = False
-vitpose_size = 'small'  # options: small, base, large, huge
+vitpose_size = 'huge'  # options: small, base, large, huge
 
 evaluation = dict(interval=1, metric=['PCK', 'PCKe', 'EPE', 'mAP'], save_best='PCK')
 
 optimizer = dict(
     type='Adam',
-    lr=0.005,
+    lr=0.002778,
 )
 optimizer_config = dict(grad_clip=None)
 # learning policy
@@ -28,12 +29,12 @@ log_config = dict(
     ])
 
 channel_cfg = dict(
-    num_output_channels=22,
-    dataset_joints=22,
+    num_output_channels=37,
+    dataset_joints=37,
     dataset_channel=[
-        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22],
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36],
     ],
-    inference_channel=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22])
+    inference_channel=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36])
 
 # model settings
 channels = 4 if not only_rgb else 3
@@ -146,19 +147,21 @@ view_info = "D:/1_SHRIMP_PROYECT/1_DATASET/2_ADITIONAL_INFO/shrimps_point_of_vie
 real_cm_data = "D:/1_SHRIMP_PROYECT/1_DATASET/2_ADITIONAL_INFO/ADITIONAL_INFO_MANAGER/output_information/real_cm_data.csv"
 conversion_model_dir = "C:/Users/Tecnico/Downloads/vitpose24102024/pixelconversor/conversor/searcher/models"
 
-# data_root = 'D:/vitpose_work_dir/data/pose_estimation/superior_22kp'
-data_root = 'D:/vitpose_work_dir/data/global_system/3_pose_estimation/22_DORSAL/dataset'
-ann_file_measure = f'{data_root}/annotations/real_measure.json'
-skeleton_order = [[1, 8], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [9, 10], [11, 12], [13, 14], [15, 16], [17, 18], [19, 20], [21, 22]]
-skeleton_name = ["abdomen", "l_1seg", "l_2seg", "l_3seg", "l_4seg", "l_5seg", "l_6seg", "w_head", "w_1seg", "w_2seg", "w_3seg", "w_4seg", "w_5seg", "w_6seg"]
-dataset_type = 'AnimalCamaronDatasetDeep' if not only_rgb else 'AnimalCamaronDataset'
+# Custom cofiguration
+complete_analysis = True
+data_root = 'D:/1_SHRIMP_PROYECT/2_DATASET_MANAGEMENT/MULTIPLE_DATASET_MANAGEMENT/DATASETMANAGEMENT/results/complete_system/shrimp_dataset_complete_system_v0_2025_04_02/pose_estimation/shrimp_dataset_23KP_lateral_4277_v0_2025_04_02'#'D:/1_SHRIMP_PROYECT/2_DATASET_MANAGEMENT/MULTIPLE_DATASET_MANAGEMENT/DATASETMANAGEMENT/results/shrimp_dataset_23KP_lateral_4935_v0_2025_03_05'#shrimp_dataset_22KP_lateral_3699_v0_2025_02_07'#shrimp_dataset_23KP_lateral_1121_v0_2025_01_20'
+# skeleton_order = [[1, 9], [2, 9], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [10, 11], [12, 13], [14, 15], [16, 17], [18, 19], [20, 21], [22, 23]]
+skeleton_order = [[1, 9], [2, 9], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [10, 11], [12, 13], [14, 15], [16, 17], [18, 19], [20, 21], [22, 23], [24, 25], [26, 27], [28, 29], [30, 31], [32, 33], [34, 35], [36, 37]]
+skeleton_name = ["total", "abdomen", "l_head", "l_1seg", "l_2seg", "l_3seg", "l_4seg", "l_5seg", "l_6seg", "h_head", "h_1seg", "h_2seg", "h_3seg", "h_4seg", "h_5seg", "h_6seg", "w_head", "w_1seg", "w_2seg", "w_3seg", "w_4seg", "w_5seg", "w_6seg"]
+# skeleton_name_dorsal = ["total", "abdomen", "l_head", "l_1seg", "l_2seg", "l_3seg", "l_4seg", "l_5seg", "l_6seg", "w_head", "w_1seg", "w_2seg", "w_3seg", "w_4seg", "w_5seg", "w_6seg"]
+
 data = dict(
-    samples_per_gpu=8,  # 64
+    samples_per_gpu=8,
     workers_per_gpu=4,
-    val_dataloader=dict(samples_per_gpu=8),  # 32
-    test_dataloader=dict(samples_per_gpu=8),  # 32
+    val_dataloader=dict(samples_per_gpu=8),
+    test_dataloader=dict(samples_per_gpu=8),
     train=dict(
-        type=dataset_type,
+        type='AnimalCamaronDatasetDeepCompact',
         ann_file=f'{data_root}/annotations/train_keypoints.json',
         img_prefix=f'{data_root}/images/train/',
         img_prefix_depth=f'{data_root}/depths/train/',
@@ -166,7 +169,7 @@ data = dict(
         pipeline=train_pipeline,
         dataset_info={{_base_.dataset_info}}),
     val=dict(
-        type=dataset_type,
+        type='AnimalCamaronDatasetDeep',
         ann_file=f'{data_root}/annotations/val_keypoints.json',
         img_prefix=f'{data_root}/images/val/',
         img_prefix_depth=f'{data_root}/depths/val/',
@@ -174,10 +177,18 @@ data = dict(
         pipeline=val_pipeline,
         dataset_info={{_base_.dataset_info}}),
     test=dict(
-        type=dataset_type,
+        type='AnimalCamaronDatasetDeep',
         ann_file=f'{data_root}/annotations/test_keypoints.json',
         img_prefix=f'{data_root}/images/test/',
         img_prefix_depth=f'{data_root}/depths/test/',
+        data_cfg=data_cfg,
+        pipeline=test_pipeline,
+        dataset_info={{_base_.dataset_info}}),
+    total=dict(
+        type='AnimalCamaronDatasetDeep',
+        ann_file=f'{data_root}/annotations/total_keypoints.json',
+        img_prefix=f'{data_root}/images/total/',
+        img_prefix_depth=f'{data_root}/depths/total/',
         data_cfg=data_cfg,
         pipeline=test_pipeline,
         dataset_info={{_base_.dataset_info}}),

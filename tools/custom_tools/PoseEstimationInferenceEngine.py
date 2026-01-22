@@ -11,6 +11,15 @@ from imashrimp_mmcv.mmcv.runner import load_checkpoint
 from imashrimp_ViTPose.mmpose.models import build_posenet
 from imashrimp_ViTPose.mmpose.datasets.pipelines import Compose
 
+from collections.abc import Mapping, Sequence
+
+import torch
+import torch.nn.functional as F
+from torch.utils.data.dataloader import default_collate
+
+from imashrimp_mmcv.mmcv.parallel.data_container import DataContainer
+from imashrimp_mmcv.mmcv.parallel import scatter
+
 # Optimizaciones opcionales
 try:
     from mmcv.cnn import fuse_conv_bn
@@ -35,7 +44,8 @@ class PoseEstimationInferenceEngine:
         print(f"[PoseEngine] Cargando modelo desde: {checkpoint_path}")
 
         # 2. Construir Modelo
-        self.model = build_posenet(self.cfg.model)
+        model = build_posenet(self.cfg.model)
+        self.model = MMDataParallel(model, device_ids=[0])
 
         # 3. Cargar Pesos (Checkpoint)
         # map_location='cpu' es más seguro para evitar picos de VRAM al cargar, luego movemos.
@@ -71,8 +81,6 @@ class PoseEstimationInferenceEngine:
         # Warmup (Opcional pero recomendado): Ejecutar una inferencia dummy para iniciar CUDA kernels
         self._warmup()
 
-        self.bbox = [0, 0, 1920, 1080]
-        self.center, self.scale = self._box_to_center_scale(self.bbox)
         self.joints_3d = np.zeros((37, 3), dtype=np.float32)
         self.joints_3d_visible = np.zeros((37, 3), dtype=np.float32)
         self.ann_info = self.cfg.data.test.get('data_cfg')
@@ -90,7 +98,7 @@ class PoseEstimationInferenceEngine:
                 pass
 
     @staticmethod
-    def _box_to_center_scale(bbox, pixel_std=200):
+    def _box_to_center_scale_old(bbox, pixel_std=200):
         """Convierte [x, y, w, h] a centro y escala para mmpose."""
         x, y, w, h = bbox
         center = np.zeros(2, dtype=np.float32)
@@ -100,6 +108,34 @@ class PoseEstimationInferenceEngine:
         # Mantener el aspect ratio de la red (normalmente definido en el config del modelo)
         # Si no, un cálculo estándar es:
         scale = np.array([w / pixel_std, h / pixel_std], dtype=np.float32)
+        return center, scale
+
+    def _box_to_center_scale(self, bbox, padding=1):
+        """This encodes bbox(x,y,w,h) into (center, scale)
+
+        Args:
+            x, y, w, h (float): left, top, width and height
+            padding (float): bounding box padding factor
+
+        Returns:
+            center (np.ndarray[float32](2,)): center of the bbox (x, y).
+            scale (np.ndarray[float32](2,)): scale of the bbox w & h.
+        """
+        x, y, w, h = bbox
+        aspect_ratio = self.ann_info['image_size'][0] / self.ann_info[
+            'image_size'][1]
+        center = np.array([x + w * 0.5, y + h * 0.5], dtype=np.float32)
+
+        if w > aspect_ratio * h:
+            h = w * 1.0 / aspect_ratio
+        elif w < aspect_ratio * h:
+            w = h * aspect_ratio
+
+        # pixel std is 200.0
+        scale = np.array([w / 200.0, h / 200.0], dtype=np.float32)
+        # padding to include proper amount of context
+        scale = scale * padding
+
         return center, scale
 
     @staticmethod
@@ -143,7 +179,82 @@ class PoseEstimationInferenceEngine:
             # Retorna canal vacío negro en caso de fallo para no romper el pipeline
             return np.zeros((1080, 1920, 1), dtype=np.float32)  # Ajusta resolución si es fija
 
-    def preprocess(self, img_rgb_numpy, dth_path):
+    def collate(self, batch, samples_per_gpu=1):
+        """Puts each data field into a tensor/DataContainer with outer dimension
+        batch size.
+
+        Extend default_collate to add support for
+        :type:`~mmcv.parallel.DataContainer`. There are 3 cases.
+
+        1. cpu_only = True, e.g., meta data
+        2. cpu_only = False, stack = True, e.g., images tensors
+        3. cpu_only = False, stack = False, e.g., gt bboxes
+        """
+
+        if not isinstance(batch, Sequence):
+            raise TypeError(f'{batch.dtype} is not supported.')
+
+        if isinstance(batch[0], DataContainer):
+            stacked = []
+            if batch[0].cpu_only:
+                for i in range(0, len(batch), samples_per_gpu):
+                    stacked.append(
+                        [sample.data for sample in batch[i:i + samples_per_gpu]])
+                return DataContainer(
+                    stacked, batch[0].stack, batch[0].padding_value, cpu_only=True)
+            elif batch[0].stack:
+                for i in range(0, len(batch), samples_per_gpu):
+                    assert isinstance(batch[i].data, torch.Tensor)
+
+                    if batch[i].pad_dims is not None:
+                        ndim = batch[i].dim()
+                        assert ndim > batch[i].pad_dims
+                        max_shape = [0 for _ in range(batch[i].pad_dims)]
+                        for dim in range(1, batch[i].pad_dims + 1):
+                            max_shape[dim - 1] = batch[i].size(-dim)
+                        for sample in batch[i:i + samples_per_gpu]:
+                            for dim in range(0, ndim - batch[i].pad_dims):
+                                assert batch[i].size(dim) == sample.size(dim)
+                            for dim in range(1, batch[i].pad_dims + 1):
+                                max_shape[dim - 1] = max(max_shape[dim - 1],
+                                                         sample.size(-dim))
+                        padded_samples = []
+                        for sample in batch[i:i + samples_per_gpu]:
+                            pad = [0 for _ in range(batch[i].pad_dims * 2)]
+                            for dim in range(1, batch[i].pad_dims + 1):
+                                pad[2 * dim -
+                                    1] = max_shape[dim - 1] - sample.size(-dim)
+                            padded_samples.append(
+                                F.pad(
+                                    sample.data, pad, value=sample.padding_value))
+                        stacked.append(default_collate(padded_samples))
+                    elif batch[i].pad_dims is None:
+                        stacked.append(
+                            default_collate([
+                                sample.data
+                                for sample in batch[i:i + samples_per_gpu]
+                            ]))
+                    else:
+                        raise ValueError(
+                            'pad_dims should be either None or integers (1-3)')
+
+            else:
+                for i in range(0, len(batch), samples_per_gpu):
+                    stacked.append(
+                        [sample.data for sample in batch[i:i + samples_per_gpu]])
+            return DataContainer(stacked, batch[0].stack, batch[0].padding_value)
+        elif isinstance(batch[0], Sequence):
+            transposed = zip(*batch)
+            return [self.collate(samples, samples_per_gpu) for samples in transposed]
+        elif isinstance(batch[0], Mapping):
+            return {
+                key: self.collate([d[key] for d in batch], samples_per_gpu)
+                for key in batch[0]
+            }
+        else:
+            return default_collate(batch)
+
+    def preprocess(self, img_rgb_numpy, bbox, img_path, dth_path):
         """
         1. Fusiona RGB + Depth.
         2. Ejecuta transformaciones de MMPose (CPU).
@@ -159,49 +270,33 @@ class PoseEstimationInferenceEngine:
         # Aseguramos float32 para la red
         input_data = np.concatenate((img_rgb_numpy.astype(np.float32), depth_arr), axis=2)
 
+        center, scale = self._box_to_center_scale(bbox)
+
         # 3. Construir Dict para MMPose
-        data = {
-            'img': input_data,
-            'img_shape': input_data.shape,
-            'ori_shape': input_data.shape,
-            'image_file': '',
+        data ={
+            'image_file': img_path,
             'depth_file': dth_path,
-            'center': self.center,
-            'scale': self.scale,
-            'bbox': self.bbox,
+            'center': center,
+            'scale': scale,
+            'bbox': bbox,
             'rotation': 0,
+            'joints_3d': self.joints_3d,
+            'joints_3d_visible': self.joints_3d_visible,
             'dataset': 'camaron',
             'bbox_score': 1,
             'bbox_id': 0,
-            'joints_3d': self.joints_3d,
-            'joints_3d_visible': self.joints_3d_visible,
-            'flip_pairs': self.ann_info['flip_pairs'],
-            'ann_info': self.ann_info
+            'ann_info': self.ann_info,
+            'img': input_data
         }
 
         # 4. Pipeline CPU (Resize, Normalize, ToTensor)
         # Esto convierte 'img' en un DC (DataContainer) con un Tensor dentro
         data = self.transform_pipeline(data)
-
-        # 5. Extracción y Transferencia a GPU
-        # data['img'] suele ser un DataContainer, accedemos a .data
-        # Si ToTensor no envuelve en DataContainer, ajusta a data['img']
-        tensor = data['img'].data if hasattr(data['img'], 'data') else data['img']
-
-        # Añadir batch dim: (C, H, W) -> (1, C, H, W)
-        tensor = tensor.unsqueeze(0)
-
-        # Transferencia Asíncrona a GPU
-        tensor = tensor.to(self.device, non_blocking=True)
-
-        # Casting a FP16 si el modelo lo requiere
-        if self.is_fp16:
-            tensor = tensor.half()
-
-        # Metadatos necesarios para el forward
-        img_metas = [data['img_metas'].data] if hasattr(data['img_metas'], 'data') else [data['img_metas']]
-
-        return tensor, img_metas
+        if 'img' in data and isinstance(data['img'], torch.Tensor):
+            data['img'] = data['img'].to('cuda')
+        network_input = self.collate([data])  # Añadir dimensión batch
+        # network_input = scatter(network_input, ['cuda'])[0]
+        return network_input
 
     def predict_async(self, input_data):
         """
@@ -211,14 +306,7 @@ class PoseEstimationInferenceEngine:
         Args:
             input_data: Tupla (tensor, metas) devuelta por preprocess.
         """
-        img_tensor, img_metas = input_data
-
-        # El contexto del stream (cuda.stream(s)) debe ser manejado fuera,
-        # o asumimos el stream por defecto si no se especifica.
-        # Aquí solo ejecutamos el forward.
-
-        # MMPose forward_test suele ser: model(return_loss=False, ...)
-        output = self.model(img=img_tensor, img_metas=img_metas, return_loss=False)
+        output = self.model(return_loss=False, **input_data)
 
         return output
 

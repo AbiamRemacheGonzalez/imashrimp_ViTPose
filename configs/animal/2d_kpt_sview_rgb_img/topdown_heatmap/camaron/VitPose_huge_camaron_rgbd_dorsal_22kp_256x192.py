@@ -3,7 +3,7 @@ _base_ = [
     '../../../../_base_/datasets/camaron22kp.py'
 ]
 only_rgb = False
-vitpose_size = 'small'  # options: small, base, large, huge
+vitpose_size = 'huge'  # options: small, base, large, huge
 
 evaluation = dict(interval=1, metric=['PCK', 'PCKe', 'EPE', 'mAP'], save_best='PCK')
 

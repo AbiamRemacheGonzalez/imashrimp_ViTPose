@@ -6,10 +6,12 @@ pretrain_lateral_22_pth = "C:/Users/Tecnico/Downloads/vitpose-s.pth"#"D:/1_SHRIM
 # Paths to binary classification pre-trained models
 pretrain_pov_pth = "0_binary_classification/classification_manager/results/point_of_view/2025-05-09/winner_256_192_0.0002_5/best_model_0.0002_5.pth"
 pretrain_rostrum_pth = "0_binary_classification/classification_manager/results/rostrum_integrity/2025-05-11/winner_256_192_0.0005_5/best_model_0.0005_5.pth"
+# Path to the detection model
+pretrain_detection_path = "D:/_github_directory/Imashrimp/0_detection/detection_manager/results/winner/best.pt"
 # Path to the dataset
 dataset_path = "D:/1_SHRIMP_PROYECT/2_DATASET_MANAGEMENT/MULTIPLE_DATASET_MANAGEMENT/DATASETMANAGEMENT/results/complete_system/shrimp_dataset_complete_system_v0_2025_10_09"
-
-
+# Path to the detection dataset (added to save storage space)
+dataset_yaml_path = "D:/_github_directory/Imashrimp/0_detection/detection_manager/data/dataset/detection_shrimp_dataset.yaml"
 # Paths to configuration files
 dorsal_23_config = "1_pose_estimation/imashrimp_ViTPose/configs/animal/2d_kpt_sview_rgb_img/topdown_heatmap/camaron/VitPose_huge_camaron_rgbd_dorsal_23kp_256x192.py"
 dorsal_22_config = "1_pose_estimation/imashrimp_ViTPose/configs/animal/2d_kpt_sview_rgb_img/topdown_heatmap/camaron/VitPose_huge_camaron_rgbd_dorsal_22kp_256x192.py"

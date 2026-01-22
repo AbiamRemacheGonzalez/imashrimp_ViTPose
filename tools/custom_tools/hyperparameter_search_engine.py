@@ -312,8 +312,7 @@ class HyperparameterSearchEngine:
         self.source_dir = self.args.work_dir + "/hyperparameter_search"
         self.args.work_dir = self.args.work_dir + "/hyperparameter_search"
         # lrs = [0.00001, 0.00003, 0.00005, 0.00007, 0.0001, 0.0003, 0.0005, 0.0007, 0.001, 0.003, 0.005, 0.007, 0.01] # For Huge models
-        lrs = [0.00001, 0.00003, 0.00005, 0.00007, 0.0001, 0.0003, 0.0005, 0.0007, 0.001, 0.003, 0.005, 0.007, 0.01,
-               0.05, 0.07, 0.1, 0.5, 0.7, 1]  # For Small models
+        lrs = [0.00001, 0.00003, 0.00005, 0.00007, 0.0001, 0.0003, 0.0005, 0.0007, 0.001, 0.003, 0.005, 0.007, 0.01, 0.05, 0.07, 0.1, 0.5, 0.7, 1]  # For Huge models
 
         # Find optimal batch size
         tests = [8, 16, 32, 64, 128]  # 128 , 256, 512, 1024

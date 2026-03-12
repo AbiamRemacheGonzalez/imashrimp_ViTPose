@@ -9,11 +9,11 @@ from .kpt_3d_mview_rgb_img_direct_dataset import Kpt3dMviewRgbImgDirectDataset
 from .kpt_3d_sview_kpt_2d_dataset import Kpt3dSviewKpt2dDataset
 from .kpt_3d_sview_rgb_img_top_down_dataset import \
     Kpt3dSviewRgbImgTopDownDataset
-from .kpt_2d_deep_sview_rgbd_img_top_down_dataset import Kpt2dDeepSviewRgbImgTopDownDataset
-from .kpt_2d_deep_sview_rgbd_img_top_down_dataset_compact import Kpt2dDeepSviewRgbImgTopDownDatasetCompact
+
+from .kpt_2d_sview_rgbd_img_top_down_shrimp_dataset import Kpt2dSviewRgbdImgTopDownShrimpDataset
 
 __all__ = [
     'Kpt3dMviewRgbImgDirectDataset', 'Kpt2dSviewRgbImgTopDownDataset',
     'Kpt3dSviewRgbImgTopDownDataset', 'Kpt2dSviewRgbImgBottomUpDataset',
-    'Kpt3dSviewKpt2dDataset', 'Kpt2dSviewRgbVidTopDownDataset', 'Kpt2dDeepSviewRgbImgTopDownDataset', 'Kpt2dDeepSviewRgbImgTopDownDatasetCompact'
+    'Kpt3dSviewKpt2dDataset', 'Kpt2dSviewRgbVidTopDownDataset', 'Kpt2dSviewRgbdImgTopDownShrimpDataset'
 ]

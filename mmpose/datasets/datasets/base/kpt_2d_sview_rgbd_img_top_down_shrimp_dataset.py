@@ -1,4 +1,3 @@
-# Copyright (c) OpenMMLab. All rights reserved.
 import copy
 from abc import ABCMeta, abstractmethod
 
@@ -7,34 +6,12 @@ import numpy as np
 from torch.utils.data import Dataset
 from xtcocotools.coco import COCO
 
-from imashrimp_ViTPose.mmpose.core.evaluation.top_down_eval import (keypoint_auc, keypoint_epe,
-                                                  keypoint_nme,
-                                                  keypoint_pck_accuracy,
-                                                  _calc_distances)
+from imashrimp_ViTPose.mmpose.core.evaluation.top_down_eval import (keypoint_auc, keypoint_epe, keypoint_nme, keypoint_pck_accuracy, _calc_distances, keypoint_coordinate_errors)
 from imashrimp_ViTPose.mmpose.datasets import DatasetInfo
 from imashrimp_ViTPose.mmpose.datasets.pipelines import Compose
 
 
-class Kpt2dDeepSviewRgbImgTopDownDataset(Dataset, metaclass=ABCMeta):
-    """Base class for keypoint 2D top-down pose estimation with single-view RGB
-    image as the input.
-
-    All fashion datasets should subclass it.
-    All subclasses should overwrite:
-        Methods:`_get_db`, 'evaluate'
-
-    Args:
-        ann_file (str): Path to the annotation file.
-        img_prefix (str): Path to a directory where images are held.
-            Default: None.
-        data_cfg (dict): config
-        pipeline (list[dict | callable]): A sequence of data transforms.
-        dataset_info (DatasetInfo): A class containing all dataset info.
-        coco_style (bool): Whether the annotation json is coco-style.
-            Default: True
-        test_mode (bool): Store True when building test or
-            validation dataset. Default: False.
-    """
+class Kpt2dSviewRgbdImgTopDownShrimpDataset(Dataset, metaclass=ABCMeta):
 
     def __init__(self,
                  ann_file,
@@ -104,83 +81,7 @@ class Kpt2dDeepSviewRgbImgTopDownDataset(Dataset, metaclass=ABCMeta):
                     for cls in self.classes[1:])
             self.img_ids = self.coco.getImgIds()
             self.num_images = len(self.img_ids)
-            self.id2name, self.name2id, self.id2depthname, self.depthname2id = self._get_mapping_id_name(
-                self.coco.imgs)
-
-        def _load_coco_keypoint_annotation_kernel(self, img_id):
-            """load annotation from COCOAPI.
-
-            Note:
-                bbox:[x1, y1, w, h]
-            Args:
-                img_id: coco image id
-            Returns:
-                dict: db entry
-            """
-            img_ann = self.coco.loadImgs(img_id)[0]
-            width = img_ann['width']
-            height = img_ann['height']
-            num_joints = self.ann_info['num_joints']
-
-            ann_ids = self.coco.getAnnIds(imgIds=img_id, iscrowd=False)
-            objs = self.coco.loadAnns(ann_ids)
-
-            # sanitize bboxes
-            valid_objs = []
-            for obj in objs:
-                if 'bbox' not in obj:
-                    continue
-                x, y, w, h = obj['bbox']
-                x1 = max(0, x)
-                y1 = max(0, y)
-                x2 = min(width - 1, x1 + max(0, w - 1))
-                y2 = min(height - 1, y1 + max(0, h - 1))
-                if ('area' not in obj or obj['area'] > 0) and x2 > x1 and y2 > y1:
-                    obj['clean_bbox'] = [x1, y1, x2 - x1, y2 - y1]
-                    valid_objs.append(obj)
-            objs = valid_objs
-
-            bbox_id = 0
-            rec = []
-            for obj in objs:
-                if 'keypoints' not in obj:
-                    continue
-                if max(obj['keypoints']) == 0:
-                    continue
-                if 'num_keypoints' in obj and obj['num_keypoints'] == 0:
-                    continue
-                joints_3d = np.zeros((num_joints, 3), dtype=np.float32)
-                joints_3d_visible = np.zeros((num_joints, 3), dtype=np.float32)
-
-                keypoints = np.array(obj['keypoints']).reshape(-1, 3)
-                # if len(keypoints) < num_joints:
-                #     fila = keypoints[0]
-                #     keypoints = np.vstack((fila, keypoints))
-                # if len(keypoints) > num_joints:
-                #     keypoints = keypoints[1:].copy()
-                joints_3d[:, :2] = keypoints[:, :2]
-                joints_3d_visible[:, :2] = np.minimum(1, keypoints[:, 2:3])
-
-                center, scale = self._xywh2cs(*obj['clean_bbox'][:4], padding=1.0)
-
-                image_file = osp.join(self.img_prefix, self.id2name[img_id])
-                depth_file = osp.join(self.img_prefix_depth, self.id2depthname[img_id])
-                rec.append({
-                    'image_file': image_file,
-                    'depth_file': depth_file,
-                    'center': center,
-                    'scale': scale,
-                    'bbox': obj['clean_bbox'][:4],
-                    'rotation': 0,
-                    'joints_3d': joints_3d,
-                    'joints_3d_visible': joints_3d_visible,
-                    'dataset': self.dataset_name,
-                    'bbox_score': 1,
-                    'bbox_id': bbox_id
-                })
-                bbox_id = bbox_id + 1
-
-            return rec
+            self.id2name, self.name2id, self.id2depthname, self.depthname2id = self._get_mapping_id_name(self.coco.imgs)
 
         self.db = []
 
@@ -188,16 +89,6 @@ class Kpt2dDeepSviewRgbImgTopDownDataset(Dataset, metaclass=ABCMeta):
 
     @staticmethod
     def _get_mapping_id_name(imgs):
-        """
-        Args:
-            imgs (dict): dict of image info.
-
-        Returns:
-            tuple: Image name & id mapping dicts.
-
-            - id2name (dict): Mapping image id to name.
-            - name2id (dict): Mapping image name to id.
-        """
         id2name = {}
         name2id = {}
         id2depthname = {}
@@ -276,7 +167,6 @@ class Kpt2dDeepSviewRgbImgTopDownDataset(Dataset, metaclass=ABCMeta):
                        res_file,
                        metrics,
                        pck_thr=0.01,
-                       pcke_thr=5,
                        pckh_thr=0.7,
                        auc_nor=30):
         """Keypoint evaluation.
@@ -285,7 +175,7 @@ class Kpt2dDeepSviewRgbImgTopDownDataset(Dataset, metaclass=ABCMeta):
             res_file (str): Json file stored prediction results.
             metrics (str | list[str]): Metric to be performed.
                 Options: 'PCK', 'PCKh', 'AUC', 'EPE', 'NME'.
-            pck_thr (float): PCK threshold, default as 0.2.
+            pck_thr (float): PCK threshold, default as 0.01.
             pckh_thr (float): PCKh threshold, default as 0.7.
             auc_nor (float): AUC normalization factor, default as 30 pixel.
 
@@ -305,13 +195,9 @@ class Kpt2dDeepSviewRgbImgTopDownDataset(Dataset, metaclass=ABCMeta):
         threshold_bbox = []
         threshold_head_box = []
         threshold_bbox_for_pcke = []
-        # num_kp = len(preds[0]['keypoints'])
-        # real_measure_factors = np.zeros((num_kp, len(preds)))
 
         for pred, item in zip(preds, self.db):
             outputs.append(np.array(pred['keypoints'])[:, :-1])
-            # rmfl = np.array([pred['real_measure_factor']] * len(pred['keypoints']))
-            # real_measure_factors[:, pred['image_id']-1]=rmfl
             gts.append(np.array(item['joints_3d'])[:, :-1])
             masks.append((np.array(item['joints_3d_visible'])[:, 0]) > 0)
             if 'PCK' in metrics:
@@ -337,32 +223,23 @@ class Kpt2dDeepSviewRgbImgTopDownDataset(Dataset, metaclass=ABCMeta):
         if 'PCK' in metrics:
             _, pck, _ = keypoint_pck_accuracy(outputs, gts, masks, pck_thr,
                                               threshold_bbox)
-            norm = _calc_distances(outputs, gts, masks, threshold_bbox)
-            no_norm = _calc_distances(outputs, gts, masks, threshold_bbox_for_pcke)
-            # no_norm_cm = no_norm / real_measure_factors
-            error_one = norm / no_norm
-            mean_one = error_one.mean()
-            pixels_thr = pck_thr / mean_one
-            # error_one_cm = norm / no_norm_cm
-            # mean_one_cm = error_one_cm.mean()
-            # cm_thr = pck_thr / mean_one_cm
-            # one_px_in_cm = cm_thr / pixels_thr
             info_str.append(('PCK', pck))
 
         if 'PCKe' in metrics:
+            norm = _calc_distances(outputs, gts, masks, threshold_bbox)
+            no_norm = _calc_distances(outputs, gts, masks, threshold_bbox_for_pcke)
+            error_one = norm / no_norm
+            mean_one = error_one.mean()
+            pixels_thr = pck_thr / mean_one
+
             thrs = [1, 2, 3, 4, 5, 10, 15, 20]
             _, pcke, _ = keypoint_pck_accuracy(outputs, gts, masks, pixels_thr, threshold_bbox_for_pcke)
-            info_str.append(('PCKe_' + str(pck_thr) + "_" + str(round(pixels_thr, 2)), pcke))  # + "_" + str(round(cm_thr, 2)
+            info_str.append(('PCKe_' + str(pck_thr) + "_" + str(round(pixels_thr, 2)), pcke))
             for thr in thrs:
                 _, pcke, _ = keypoint_pck_accuracy(outputs, gts, masks, round(thr), threshold_bbox_for_pcke)
-                info_str.append(('PCKe_' + str(round(thr)), pcke))  #  + "_" + str(round(thr * one_px_in_cm, 2))
-            distances = _calc_distances(outputs, gts, masks, threshold_bbox_for_pcke)
-            info_str.append(('PCKdis', distances))
-            # nt_out = np.delete(outputs, 0, axis=1)
-            # nt_gts = np.delete(gts, 0, axis=1)
-            # nt_masks = np.delete(masks, 0, axis=1)
-            # nt_dis = _calc_distances(nt_out, nt_gts, nt_masks, threshold_bbox_for_pcke)
-            # info_str.append(('PCK_NT_DIS', nt_dis))
+                info_str.append(('PCKe_' + str(round(thr)), pcke))
+            # distances = _calc_distances(outputs, gts, masks, threshold_bbox_for_pcke)
+            # info_str.append(('PCKdis', distances))
 
         if 'PCKh' in metrics:
             _, pckh, _ = keypoint_pck_accuracy(outputs, gts, masks, pckh_thr,
@@ -381,6 +258,38 @@ class Kpt2dDeepSviewRgbImgTopDownDataset(Dataset, metaclass=ABCMeta):
                 gts=gts, box_sizes=box_sizes)
             info_str.append(
                 ('NME', keypoint_nme(outputs, gts, masks, normalize_factor)))
+
+        if 'CEpj' in metrics:
+            results_list = []
+            num_keypoints = gts.shape[1]
+            for i in range(gts.shape[1]):
+                y_pred = outputs[:, i, :]
+                y_true = gts[:, i, :]
+                point_name = i + 1 if num_keypoints > 22 else i + 2
+                result = keypoint_coordinate_errors(y_pred, y_true, point_name)
+                results_list.append(result)
+                # info_str.append(('EPEpj_' + str(point_name), str(round(result['EPE'], 2)) + "±" + str(round(result['SD(EPE)'], 2)) + "px"))
+                # info_str.append(('MAPEpj_' + str(point_name), str(round(result['MAPE'], 2)) + "%"))
+
+            y_pred_total = outputs.reshape(-1, 2)
+            y_true_total = gts.reshape(-1, 2)
+            point_name = f"General {num_keypoints}KP"
+            result = keypoint_coordinate_errors(y_pred_total, y_true_total, point_name)
+            results_list.append(result)
+            info_str.append(('EPE_' + str(point_name),  str(round(result['EPE'], 2)) + "±" + str(round(result['SD(EPE)'], 2)) + "px"))
+            info_str.append(('MAPE_' + str(point_name), str(round(result['MAPE'], 2)) + "%"))
+
+            if num_keypoints == 23:
+                y_pred = outputs[:, 1:23, :]
+                y_true = gts[:, 1:23, :]
+                y_pred_total = y_pred.reshape(-1, 2)
+                y_true_total = y_true.reshape(-1, 2)
+                point_name = f"General 22KP"
+                result = keypoint_coordinate_errors(y_pred_total, y_true_total, point_name)
+                results_list.append(result)
+                info_str.append(('EPE_' + str(point_name), str(round(result['EPE'], 2)) + "±" + str(round(result['SD(EPE)'], 2)) + "px"))
+                info_str.append(('MAPE_' + str(point_name), str(round(result['MAPE'], 2)) + "%"))
+            info_str.append(('CEpj', results_list))  # Just to save it
 
         return info_str
 

@@ -5,7 +5,8 @@ pretrain_lateral_23_pth = "C:/Users/Tecnico/Downloads/vitpose-s.pth"#"D:/1_SHRIM
 pretrain_lateral_22_pth = "C:/Users/Tecnico/Downloads/vitpose-s.pth"#"D:/1_SHRIMP_PROYECT/6_COMPLETE_SYSTEM/results/complete_system_v0_2025_10_09_4n_not_pretrained/2_pose_estimation/1_train/lateral/22KP/experiment_8468_v0_10_09/winner_16_0.0001_210/best_LOSS_epoch_189.pth"  # Path to the lateral 22 keypoints pre-trained model
 # Paths to binary classification pre-trained models
 pretrain_pov_pth = "0_binary_classification/classification_manager/results/point_of_view/2025-05-09/winner_256_192_0.0002_5/best_model_0.0002_5.pth"
-pretrain_rostrum_pth = "0_binary_classification/classification_manager/results/rostrum_integrity/2025-05-11/winner_256_192_0.0005_5/best_model_0.0005_5.pth"
+# pretrain_rostrum_pth = "0_binary_classification/classification_manager/results/rostrum_integrity/2025-05-11/winner_256_192_0.0005_5/best_model_0.0005_5.pth"
+pretrain_rostrum_pth = "0_binary_classification/classification_manager/results/rostrum_integrity/winner/best.pth"
 # Path to the detection model
 pretrain_detection_path = "D:/_github_directory/Imashrimp/0_detection/detection_manager/results/winner/best.pt"
 # Path to the dataset

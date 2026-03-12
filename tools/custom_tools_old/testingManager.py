@@ -9,7 +9,7 @@ import imashrimp_mmcv.mmcv as mmcv
 import torch
 from imashrimp_mmcv.mmcv import Config, DictAction
 from imashrimp_mmcv.mmcv.runner import get_dist_info, init_dist, load_checkpoint
-from custom_tools.base_tool import create_custom_file
+from custom_tools_old.base_tool import create_custom_file
 
 from imashrimp_ViTPose.mmpose.datasets import build_dataloader, build_dataset
 from imashrimp_ViTPose.mmpose.models import build_posenet
@@ -20,15 +20,15 @@ from imashrimp_mmcv.mmcv.cnn import fuse_conv_bn
 from imashrimp_mmcv.mmcv.parallel import MMDataParallel, MMDistributedDataParallel
 from imashrimp_ViTPose.mmpose.apis import multi_gpu_test, single_gpu_test
 
-from custom_tools.self_labeling_engine import SelfLabeling, remove_first_image_from_cvat_backup
-from custom_tools.test_tools import create_test_qualitative_images, create_test_quantitative_results
+from custom_tools_old.self_labeling_engine import SelfLabeling, remove_first_image_from_cvat_backup
+from custom_tools_old.test_tools import create_test_qualitative_images, create_test_quantitative_results
 from datetime import datetime
 from pixelconversor.conversor.searcher.utils import base as bs
 from pixelconversor.conversor.searcher.searchers import modelSearcher
-from custom_tools.self_labeling_engine import create_sample_ann_file_to_test
+from custom_tools_old.self_labeling_engine import create_sample_ann_file_to_test
 # from custom_tools.self_labeling_tool import SelfLabeling
 # from custom_tools.self_labeling_tool import create_sample_ann_file_to_test
-from custom_tools.base_tool import merge_configs
+from custom_tools_old.base_tool import merge_configs
 
 try:
     from imashrimp_mmcv.mmcv.runner import wrap_fp16_model

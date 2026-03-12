@@ -29,11 +29,13 @@ from imashrimp_mmcv.mmcv.cnn import fuse_conv_bn
 from imashrimp_mmcv.mmcv.parallel import MMDataParallel, MMDistributedDataParallel
 from imashrimp_ViTPose.mmpose.apis import multi_gpu_test, single_gpu_test
 
-import custom_tools.supervise_tool as supt
-from custom_tools.base_tool import create_custom_file, create_dir
-from custom_tools.base_tool import merge_configs
-from custom_tools.test_tools import create_test_qualitative_images, create_test_quantitative_results
-from custom_tools.hyperparameter_search_engine import HyperparameterSearchEngine
+import custom_tools_old.supervise_tool as supt
+import tools.custom_tools.old.test_tool_old as tst
+from custom_tools_old.base_tool import create_custom_file, create_dir
+from custom_tools_old.base_tool import merge_configs
+from custom_tools_old.test_tools import create_test_qualitative_images, create_test_quantitative_results
+from custom_tools_old.hyperparameter_search_engine import HyperparameterSearchEngine
+from custom_tools_old.base_tool import save_lr_distribution
 from pixelconversor.conversor.searcher.utils import base as bs
 from pixelconversor.conversor.searcher.searchers import modelSearcher
 
@@ -107,9 +109,8 @@ def parse_args():
     if 'LOCAL_RANK' not in os.environ:
         os.environ['LOCAL_RANK'] = str(args.local_rank)
     # debug
-    args.config = "../configs/animal/2d_kpt_sview_rgb_img/topdown_heatmap/camaron/VitPose_huge_camaron_rgbd_lateral_23kp_256x192.py"#VitPose_huge_camaron_rgbd_lateral_23kp_256x192.py"
+    args.config = "../configs/animal/2d_kpt_sview_rgb_img/topdown_heatmap/camaron/VitPose_huge_camaron_rgbd_lateral_23kp_256x192.py"
     args.cfg_options = {"model.pretrained": "C:/Users/Tecnico/Downloads/vitpose-h.pth"}
-    # args.work_dir = "D:/vitpose_work_dir/exp_results/_23KP_EXPS/SUPERIOR/exp_8_0.002778_0/best_LOSS_epoch_207.pth"
     # args.work_dir = "D:/vitpose_work_dir/exp_results/_23KP_EXPS/LATERAL/PRUEBA"
     args.resume_from = None
     args.gpus = None
@@ -144,7 +145,10 @@ def prepare_environment():
 
 def hyperparameter_search():
     print("IMASHRIMP: Searching hyperparameters-----------------------------")
-    bch, lr, total_epochs = HyperparameterSearchEngine(args, cfg)()
+    # bch, lr, total_epochs = HyperparameterSearchEngine(args, cfg)()
+    bch = 16
+    lr = 0.0002
+    total_epochs = 486
     cfg.optimizer['lr'] = lr
     cfg.data['samples_per_gpu'] = bch
     cfg.data['val_dataloader']['samples_per_gpu'] = bch
@@ -161,7 +165,7 @@ def hyperparameter_search():
         resume_from_dir = os.path.join(source_dir, "winner_" + str(bch) + "_" + str(lr) + "_" + str(cfg.total_epochs))
         dir_list = os.listdir(resume_from_dir)
         for file in dir_list:
-            if "best_PCK" in file:
+            if "best_LOSS" in file:
                 resume_from_file = os.path.join(resume_from_dir, file)
                 break
 
@@ -170,7 +174,7 @@ def hyperparameter_search():
             cfg.total_epochs) + "_" + str(5)
         dir_list = os.listdir(resume_from_dir)
         for file in dir_list:
-            if "best_PCK" in file:
+            if "best_LOSS" in file:
                 resume_from_file = os.path.join(resume_from_dir, file)
                 break
 
@@ -369,7 +373,8 @@ def test(complete=False):
         cfg_data = cfg.data.total
 
     for checkpoint in checkpoints:
-        checkpoint_name = os.path.basename(checkpoint)[:-4] if not complete else f"{os.path.basename(checkpoint)[:-4]}_complete"
+        checkpoint_name = os.path.basename(checkpoint)[
+                          :-4] if not complete else f"{os.path.basename(checkpoint)[:-4]}_complete"
         final_file = os.path.join(cfg.work_dir, "_test_quantitative_" + checkpoint_name + ".txt")
         if os.path.exists(final_file):
             continue
@@ -461,6 +466,7 @@ def test(complete=False):
                 broadcast_buffers=False)
             inicio = time.time()
             outputs = multi_gpu_test(model, data_loader, args.tmpdir, args.gpu_collect)
+
             fin = time.time()
 
             tiempo_ejecucion = fin - inicio
@@ -478,8 +484,8 @@ def test(complete=False):
             results = dataset.evaluate(outputs, cfg.work_dir, err_dis=True, **eval_config)
 
             pd_mae, gt_mae = create_test_quantitative_results(outputs, dataset, checkpoint_name, cfg)
-            if args.predict_images and not complete:
-                create_test_qualitative_images(outputs, dataset, checkpoint, cfg)
+            # if args.predict_images:
+            #     create_test_qualitative_images(outputs, dataset, checkpoint_name, cfg)
             # tst.save_error_per_point_histogram(results['PCKdis'], os.path.join(args.work_dir, "1_ERR_DIS_NEW_" + checkpoint_name + ".png"), metric="px")
             del results['PCKdis']
             results['mae_pd_rm'] = pd_mae
@@ -494,5 +500,5 @@ if __name__ == '__main__':
     preapare_conversion_model()
     supervise()
     test()
-    if cfg.complete_analysis:
-        test(complete=True)
+    # if cfg.complete_analysis:
+    #     test(complete=True)

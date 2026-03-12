@@ -7,10 +7,8 @@ import numpy as np
 from torch.utils.data import Dataset
 from xtcocotools.coco import COCO
 
-from imashrimp_ViTPose.mmpose.core.evaluation.top_down_eval import (keypoint_auc, keypoint_epe,
-                                                  keypoint_nme,
-                                                  keypoint_pck_accuracy,
-                                                  _calc_distances)
+from imashrimp_ViTPose.mmpose.core.evaluation.top_down_eval import (keypoint_auc, keypoint_epe, keypoint_nme,
+                                                                    keypoint_pck_accuracy)
 from imashrimp_ViTPose.mmpose.datasets import DatasetInfo
 from imashrimp_ViTPose.mmpose.datasets.pipelines import Compose
 
@@ -192,8 +190,7 @@ class Kpt2dSviewRgbImgTopDownDataset(Dataset, metaclass=ABCMeta):
     def _report_metric(self,
                        res_file,
                        metrics,
-                       pck_thr=0.01,
-                       pcke_thr=5,
+                       pck_thr=0.2,
                        pckh_thr=0.7,
                        auc_nor=30):
         """Keypoint evaluation.
@@ -221,7 +218,6 @@ class Kpt2dSviewRgbImgTopDownDataset(Dataset, metaclass=ABCMeta):
         box_sizes = []
         threshold_bbox = []
         threshold_head_box = []
-        threshold_bbox_for_pcke = []
 
         for pred, item in zip(preds, self.db):
             outputs.append(np.array(pred['keypoints'])[:, :-1])
@@ -235,8 +231,6 @@ class Kpt2dSviewRgbImgTopDownDataset(Dataset, metaclass=ABCMeta):
                 head_box_thr = item['head_size']
                 threshold_head_box.append(
                     np.array([head_box_thr, head_box_thr]))
-            if 'PCKe' in metrics:
-                threshold_bbox_for_pcke.append(np.array([1, 1]))
             box_sizes.append(item.get('box_size', 1))
 
         outputs = np.array(outputs)
@@ -244,28 +238,12 @@ class Kpt2dSviewRgbImgTopDownDataset(Dataset, metaclass=ABCMeta):
         masks = np.array(masks)
         threshold_bbox = np.array(threshold_bbox)
         threshold_head_box = np.array(threshold_head_box)
-        threshold_bbox_for_pcke = np.array(threshold_bbox_for_pcke)
         box_sizes = np.array(box_sizes).reshape([-1, 1])
 
         if 'PCK' in metrics:
             _, pck, _ = keypoint_pck_accuracy(outputs, gts, masks, pck_thr,
                                               threshold_bbox)
-            norm = _calc_distances(outputs, gts, masks, threshold_bbox)
-            no_norm = _calc_distances(outputs, gts, masks, threshold_bbox_for_pcke)
-            error_one = norm / no_norm
-            mean_one = error_one.mean()
-            pixels_thr = pck_thr / mean_one
             info_str.append(('PCK', pck))
-
-        if 'PCKe' in metrics:
-            thrs = [1, 2, 3, 4, 5, 10, 15, 20]
-            _, pcke, _ = keypoint_pck_accuracy(outputs, gts, masks, round(pixels_thr), threshold_bbox_for_pcke)
-            info_str.append(('PCKe' + str(pck_thr) + "_" + str(round(pixels_thr)), pcke))
-            for thr in thrs:
-                _, pcke, _ = keypoint_pck_accuracy(outputs, gts, masks, round(thr), threshold_bbox_for_pcke)
-                info_str.append(('PCKe_' + str(round(thr)), pcke))
-            distances = _calc_distances(outputs, gts, masks, threshold_bbox_for_pcke)
-            info_str.append(('PCKdis', distances))
 
         if 'PCKh' in metrics:
             _, pckh, _ = keypoint_pck_accuracy(outputs, gts, masks, pckh_thr,

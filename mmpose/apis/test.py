@@ -3,7 +3,6 @@ import os.path as osp
 import pickle
 import shutil
 import tempfile
-import time
 
 import imashrimp_mmcv.mmcv as mmcv
 import torch
@@ -24,12 +23,20 @@ def single_gpu_test(model, data_loader):
     Returns:
         list: The prediction results.
     """
+
     model.eval()
     results = []
+    dataset = data_loader.dataset
+    prog_bar = mmcv.ProgressBar(len(dataset))
     for data in data_loader:
         with torch.no_grad():
             result = model(return_loss=False, **data)
         results.append(result)
+
+        # use the first key as main key to calculate the batch size
+        batch_size = len(next(iter(data.values())))
+        for _ in range(batch_size):
+            prog_bar.update()
     return results
 
 

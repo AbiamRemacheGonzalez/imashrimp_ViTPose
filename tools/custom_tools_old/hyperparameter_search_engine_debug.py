@@ -50,8 +50,8 @@ class HyperparameterSearchEngine:
         datasets = [build_dataset(self.cfg.data.train)]
         self.train_len = len(datasets[0])
         factor = 2
-        self.total_epochs_win = 210 * factor
-        self.lr_config = [170 * factor, 200 * factor]
+        self.total_epochs_win = int(210 * factor)
+        self.lr_config = [int(170 * factor), int(200 * factor)]
         self.num_batchs = 1
 
     def train_n_ep(self, bch, lr, nep, bch_search=False):
@@ -135,13 +135,9 @@ class HyperparameterSearchEngine:
         cfg.total_epochs = self.total_epochs_win
         cfg.lr_config['step'] = self.lr_config
         if bch_search:
-            args.work_dir = os.path.join(args.work_dir,
-                                         "bch_" + str(bch) + "_" + str(lr) + "_" + str(cfg.total_epochs) + "_" + str(
-                                             nep))
+            args.work_dir = os.path.join(args.work_dir, "bch_" + str(bch) + "_" + str(lr) + "_" + str(cfg.total_epochs) + "_" + str(nep))
         else:
-            args.work_dir = os.path.join(args.work_dir,
-                                         "exp_" + str(bch) + "_" + str(lr) + "_" + str(cfg.total_epochs) + "_" + str(
-                                             nep))
+            args.work_dir = os.path.join(args.work_dir, "exp_" + str(bch) + "_" + str(lr) + "_" + str(cfg.total_epochs) + "_" + str(nep))
         if args.work_dir is not None:
             cfg.work_dir = args.work_dir
 
@@ -281,67 +277,42 @@ class HyperparameterSearchEngine:
                     except Exception as e:
                         print(f"No se pudo eliminar el archivo {ruta_completa}: {e}")
 
-    def winner_already_exists(self):
-        path = self.args.work_dir
-        dirs = os.listdir(path)
-        for dir in dirs:
-            if "winner_" in dir:
-                winner_path = os.path.join(path, dir)
-                list_dir = os.listdir(winner_path)
-                for file in list_dir:
-                    if "4_Train_Time_" in file:
-                        return True
-        return False
-
-    def get_winner_params(self):
-        dirs = os.listdir(self.args.work_dir)
-        for dir in dirs:
-            if "winner_" in dir:
-                split = dir.split("_")
-                bch_win = int(split[1])
-                lr_win = float(split[2])
-                total_epochs_win = int(split[3])
-                return bch_win, lr_win, total_epochs_win
-
     def __call__(self):
         copy_args = copy.deepcopy(self.args)
         copy_cfg = Config(copy.deepcopy(self.cfg))
-        if self.winner_already_exists():
-            bch_win, lr_win, total_epochs_win = self.get_winner_params()
-            return bch_win, lr_win, total_epochs_win
         self.source_dir = self.args.work_dir + "/hyperparameter_search"
         self.args.work_dir = self.args.work_dir + "/hyperparameter_search"
         # lrs = [0.00001, 0.00003, 0.00005, 0.00007, 0.0001, 0.0003, 0.0005, 0.0007, 0.001, 0.003, 0.005, 0.007, 0.01] # For Huge models
-        lrs = [0.00001, 0.00003, 0.00005, 0.00007, 0.0001, 0.0003, 0.0005, 0.0007, 0.001, 0.003, 0.005, 0.007, 0.01, 0.05, 0.07, 0.1, 0.5, 0.7, 1]  # For Huge models
+        lrs = [0.00001, 0.00003, 0.00005, 0.00007, 0.0001, 0.0003, 0.0005, 0.0007, 0.001, 0.003, 0.005, 0.007, 0.01, 0.05, 0.07, 0.1, 0.5, 0.7, 1] # For Small models
 
         # Find optimal batch size
-        tests = [8, 16, 32, 64, 128]  # 128 , 256, 512, 1024
+        tests = [256]#8, 16, 32, 64, 128, 128 , 256, 512, 1024
         memory_results = []
 
-        slr = 0.0001
-        best_bch = 8
-        max_memory = 24 * 1024  # in MB
-        for bch in tests:
-            if not self.already_exists(bch, slr, self.num_batchs, bch_search=True):
-                self.train_n_ep(bch, slr, self.num_batchs, bch_search=True)
-                self.delete_pth_files(self.args.work_dir)
-                self.args = copy.deepcopy(copy_args)
-                self.args.work_dir = self.args.work_dir + "/hyperparameter_search"
-                self.cfg = Config(copy.deepcopy(copy_cfg))
-            memory_used = self.get_memory_usage(bch, slr, self.num_batchs)
-            memory_results.append({
-                "bch": bch,
-                "memory_used": memory_used
-            })
-            if memory_used < max_memory:
-                best_bch = bch
-                if memory_used > max_memory * 0.9:
-                    break
-            if memory_used >= max_memory:
-                break
-        df_memory = pd.DataFrame(memory_results)
-        df_memory.to_csv(os.path.join(self.source_dir, "memory_usage.csv"), index=False)
-
+        # slr = 0.0001
+        # best_bch = 8
+        # max_memory = 24 * 1024  # in MB
+        # for bch in tests:
+        #     if not self.already_exists(bch, slr, self.num_batchs, bch_search=True):
+        #         self.train_n_ep(bch, slr, self.num_batchs, bch_search=True)
+        #         self.delete_pth_files(self.args.work_dir)
+        #         self.args = copy.deepcopy(copy_args)
+        #         self.args.work_dir = self.args.work_dir + "/hyperparameter_search"
+        #         self.cfg = Config(copy.deepcopy(copy_cfg))
+        #     memory_used = self.get_memory_usage(bch, slr, self.num_batchs)
+        #     memory_results.append({
+        #         "bch": bch,
+        #         "memory_used": memory_used
+        #     })
+        #     if memory_used < max_memory:
+        #         best_bch = bch
+        #         if memory_used > max_memory * 0.9:
+        #             break
+        #     if memory_used >= max_memory:
+        #         break
+        # df_memory = pd.DataFrame(memory_results)
+        # df_memory.to_csv(os.path.join(self.source_dir, "memory_usage.csv"), index=False)
+        best_bch = 256
         # Get optimal learning rate
         res_1ep = []
         for lr in lrs:

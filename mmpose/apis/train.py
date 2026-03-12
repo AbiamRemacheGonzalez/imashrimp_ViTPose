@@ -14,7 +14,6 @@ from imashrimp_ViTPose.mmpose.core import DistEvalHook, EvalHook, build_optimize
 from imashrimp_ViTPose.mmpose.core.distributed_wrapper import DistributedDataParallelWrapper
 from imashrimp_ViTPose.mmpose.datasets import build_dataloader, build_dataset
 from imashrimp_ViTPose.mmpose.utils import get_root_logger
-# # from torch_lr_finder import LRFinder
 
 try:
     from imashrimp_mmcv.mmcv.runner import Fp16OptimizerHook
@@ -172,7 +171,7 @@ def train_model(model,
     # register hooks
     runner.register_training_hooks(cfg.lr_config, optimizer_config,
                                    cfg.checkpoint_config, cfg.log_config,
-                                   cfg.get('momentum_config', None))
+                                   cfg.get('momentum_config', None), custom_hooks_config=cfg.early_stopping_config)
     if distributed:
         runner.register_hook(DistSamplerSeedHook())
 
@@ -199,4 +198,3 @@ def train_model(model,
     elif cfg.load_from:
         runner.load_checkpoint(cfg.load_from)
     runner.run(data_loaders, cfg.workflow, cfg.total_epochs)
-    return runner.iter_lrs

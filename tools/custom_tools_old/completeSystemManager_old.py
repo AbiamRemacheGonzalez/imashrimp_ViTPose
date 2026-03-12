@@ -1,5 +1,5 @@
 from imashrimp_mmcv.mmcv import Config, DictAction
-from custom_tools.training_engine import TrainingEngine
+from custom_tools_old.training_engine import TrainingEngine
 import argparse
 import os
 import sys

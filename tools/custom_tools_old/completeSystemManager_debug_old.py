@@ -1,13 +1,13 @@
 from imashrimp_mmcv.mmcv import Config, DictAction
-from custom_tools.training_engine import TrainingEngine
+from custom_tools_old.training_engine import TrainingEngine
 import argparse
 import os
 import pandas as pd
 import sys
 import numpy as np
 import glob
-import custom_tools.test_tools as test_tools
-from custom_tools.base_tool import create_dir
+import custom_tools_old.test_tools as test_tools
+from custom_tools_old.base_tool import create_dir
 from pixelconversor.conversor.comparer.comparer import PopulationComparerByView
 
 ruta_proyecto = os.path.abspath('D:/1_SHRIMP_PROYECT/4_CLASSIFICATION/BINARY_CLASSIFICATION')

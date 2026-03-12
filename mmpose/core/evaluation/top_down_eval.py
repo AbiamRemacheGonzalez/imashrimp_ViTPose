@@ -315,16 +315,16 @@ def _taylor(heatmap, coord):
         dx = 0.5 * (heatmap[py][px + 1] - heatmap[py][px - 1])
         dy = 0.5 * (heatmap[py + 1][px] - heatmap[py - 1][px])
         dxx = 0.25 * (
-            heatmap[py][px + 2] - 2 * heatmap[py][px] + heatmap[py][px - 2])
+                heatmap[py][px + 2] - 2 * heatmap[py][px] + heatmap[py][px - 2])
         dxy = 0.25 * (
-            heatmap[py + 1][px + 1] - heatmap[py - 1][px + 1] -
-            heatmap[py + 1][px - 1] + heatmap[py - 1][px - 1])
+                heatmap[py + 1][px + 1] - heatmap[py - 1][px + 1] -
+                heatmap[py + 1][px - 1] + heatmap[py - 1][px - 1])
         dyy = 0.25 * (
-            heatmap[py + 2 * 1][px] - 2 * heatmap[py][px] +
-            heatmap[py - 2 * 1][px])
+                heatmap[py + 2 * 1][px] - 2 * heatmap[py][px] +
+                heatmap[py - 2 * 1][px])
         derivative = np.array([[dx], [dy]])
         hessian = np.array([[dxx, dxy], [dxy, dyy]])
-        if dxx * dyy - dxy**2 != 0:
+        if dxx * dyy - dxy ** 2 != 0:
             hessianinv = np.linalg.inv(hessian)
             offset = -hessianinv @ derivative
             offset = np.squeeze(np.array(offset.T), axis=0)
@@ -682,3 +682,38 @@ def multilabel_classification_accuracy(pred, gt, mask, thr=0.5):
         # only if it's correct for all labels.
         acc = (((pred - thr) * (gt - thr)) > 0).all(axis=1).mean()
     return acc
+
+
+def keypoint_coordinate_errors(y_pred, y_true, point_name):
+    mask = ~np.isnan(y_pred).any(axis=1) & ~np.isnan(y_true).any(axis=1)
+    y_pred = y_pred[mask]
+    y_true = y_true[mask]
+
+    mask_to_remove = np.all(y_true == 0, axis=1)
+    mask_to_keep = ~mask_to_remove
+    y_true = y_true[mask_to_keep]
+    y_pred = y_pred[mask_to_keep]
+
+    # Calcular los errores
+    mae = np.mean(np.abs(y_pred - y_true))  # MAE
+    mse = np.mean((y_pred - y_true) ** 2)  # MSE
+    rmse = np.sqrt(mse)  # RMSE
+    stddev = np.std(y_pred - y_true)  # Desviación estándar
+    mask = y_true != 0
+    mape = np.mean(np.abs((y_true[mask] - y_pred[mask]) / y_true[mask]) * 100)
+
+    distances = np.linalg.norm(y_true - y_pred, axis=1)
+    epe = np.mean(distances)
+    stddev_epe = np.std(distances)
+
+    return {
+        'Point': f'{point_name}',
+        'MAE': mae,
+        'SD(MAE)': stddev,
+        'EPE': epe,
+        'SD(EPE)': stddev_epe,
+        'MSE': mse,
+        'RMSE': rmse,
+        'StdDev': stddev,
+        'MAPE': mape
+    }

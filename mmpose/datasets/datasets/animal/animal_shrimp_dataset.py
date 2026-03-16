@@ -739,6 +739,7 @@ class AnimalShrimpDataset(Kpt2dSviewRgbdImgTopDownShrimpDataset):
         ]
 
         info_str = list(zip(stats_names, coco_eval.stats))
+        info_str.append(("coco_keypoints_path", res_file))
 
         return info_str
 

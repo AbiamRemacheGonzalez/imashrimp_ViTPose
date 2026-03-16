@@ -291,6 +291,9 @@ class Kpt2dSviewRgbdImgTopDownShrimpDataset(Dataset, metaclass=ABCMeta):
                 info_str.append(('MAPE_' + str(point_name), str(round(result['MAPE'], 2)) + "%"))
             info_str.append(('CEpj', results_list))  # Just to save it
 
+        aggregate_info = {"outputs": outputs, "gts": gts, "masks": masks, "threshold_bbox": threshold_bbox, "threshold_head_box": threshold_head_box, "threshold_bbox_for_pcke": threshold_bbox_for_pcke, "box_sizes": box_sizes}
+        info_str.append(("aggregate_info", aggregate_info))
+
         return info_str
 
     def __len__(self):

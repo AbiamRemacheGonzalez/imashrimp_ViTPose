@@ -531,8 +531,8 @@ class AnimalShrimpDataset(Kpt2dSviewRgbdImgTopDownShrimpDataset):
         with open(res_file, 'r') as fin:
             distances = json.load(fin)
         assert len(distances) == len(self.db)
-
-        info_str.append(('pixel_distances_path', res_file))
+        res_file_abs = res_file.split("2_pose_estimation/")[1]
+        info_str.append(('pixel_distances_path', res_file_abs))
         return info_str
 
     def get_keypoint_distances(self, keypoints, skeleton):
